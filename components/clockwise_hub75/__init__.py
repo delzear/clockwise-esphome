@@ -65,21 +65,6 @@ async def to_code(config):
     cg.add_library("bblanchon/ArduinoJson", "^6.21.4")
     cg.add_library("bitbank2/PNGdec", "1.0.1")
 
-    # Auto-patch Adafruit_GFX_Library CMakeLists.txt if downloaded into pio_components
-    for root_dir in ["C:/esphb", os.path.expanduser("~")]:
-        if os.path.exists(root_dir):
-            for dirpath, _, filenames in os.walk(root_dir):
-                if os.path.basename(dirpath) == "Adafruit_GFX_Library" and "CMakeLists.txt" in filenames:
-                    cmake_file = os.path.join(dirpath, "CMakeLists.txt")
-                    try:
-                        with open(cmake_file, "r", encoding="utf-8") as f:
-                            content = f.read()
-                        if "Adafruit_BusIO" not in content:
-                            content = content.replace("idf_component_register(", "idf_component_register(\n    REQUIRES Adafruit_BusIO\n")
-                            with open(cmake_file, "w", encoding="utf-8") as f:
-                                f.write(content)
-                    except Exception:
-                        pass
 
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)

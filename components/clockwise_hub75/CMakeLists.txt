@@ -1,39 +1,16 @@
 file(GLOB_RECURSE SOURCES "*.cpp")
 
-# Locate Adafruit_GFX_Library CMakeLists.txt in pio_components relative to CMAKE_BINARY_DIR and inject REQUIRES Adafruit_BusIO
-file(GLOB_RECURSE ALL_CMAKES 
-    "${CMAKE_BINARY_DIR}/../../../pio_components/*CMakeLists.txt"
-    "${CMAKE_BINARY_DIR}/../../../../pio_components/*CMakeLists.txt"
-    "C:/esphb/*CMakeLists.txt"
-)
-
-foreach(GFX_CMAKE ${ALL_CMAKES})
-    if(GFX_CMAKE MATCHES "Adafruit_GFX_Library/CMakeLists.txt")
-        if(EXISTS ${GFX_CMAKE})
-            file(READ ${GFX_CMAKE} GFX_CONTENT)
-            if(NOT GFX_CONTENT MATCHES "Adafruit_BusIO")
-                string(REPLACE "idf_component_register(" "idf_component_register(\n    REQUIRES Adafruit_BusIO\n" GFX_NEW "${GFX_CONTENT}")
-                file(WRITE ${GFX_CMAKE} "${GFX_NEW}")
-                message(STATUS "[Clockwise] Successfully patched Adafruit_GFX_Library CMakeLists.txt at ${GFX_CMAKE}")
-            endif()
-        endif()
-    endif()
-endforeach()
-
-# Also locate Adafruit_BusIO header directory and add to global include directories
-file(GLOB_RECURSE BUSIO_HEADER 
-    "${CMAKE_BINARY_DIR}/../../../pio_components/*Adafruit_I2CDevice.h"
-    "C:/esphb/*Adafruit_I2CDevice.h"
-)
-if(BUSIO_HEADER)
-    list(GET BUSIO_HEADER 0 FIRST_BUSIO)
-    get_filename_component(BUSIO_DIR ${FIRST_BUSIO} DIRECTORY)
-    include_directories("${BUSIO_DIR}")
-    message(STATUS "[Clockwise] Global include added for Adafruit_BusIO: ${BUSIO_DIR}")
-endif()
-
 idf_component_register(
     SRCS ${SOURCES}
     INCLUDE_DIRS "."
     REQUIRES esphome wifi arduino esp_http_client Adafruit_BusIO Adafruit_GFX_Library ArduinoJson PNGdec
 )
+
+# After all components are registered, inject Adafruit_BusIO's include directory
+# into the Adafruit_GFX_Library target so it can find Adafruit_I2CDevice.h.
+# This works because our REQUIRES ensures both targets exist by this point.
+idf_component_get_property(busio_dir Adafruit_BusIO COMPONENT_DIR)
+if(busio_dir)
+    message(STATUS "[Clockwise] Injecting Adafruit_BusIO include dir: ${busio_dir}")
+    target_include_directories(__idf_Adafruit_GFX_Library PUBLIC "${busio_dir}")
+endif()
