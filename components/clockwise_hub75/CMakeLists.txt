@@ -1,20 +1,20 @@
 file(GLOB_RECURSE SOURCES "*.cpp")
 
+# Auto-patch Adafruit_GFX_Library CMakeLists.txt if missing REQUIRES Adafruit_BusIO
+file(GLOB_RECURSE GFX_CMAKES "${CMAKE_BINARY_DIR}/../pio_components/*/Adafruit_GFX_Library/CMakeLists.txt" "${CMAKE_BINARY_DIR}/../../pio_components/*/Adafruit_GFX_Library/CMakeLists.txt")
+foreach(GFX_CMAKE ${GFX_CMAKES})
+    if(EXISTS ${GFX_CMAKE})
+        file(READ ${GFX_CMAKE} CMAKE_CONTENT)
+        if(NOT CMAKE_CONTENT MATCHES "Adafruit_BusIO")
+            string(REPLACE "idf_component_register(" "idf_component_register(\n    REQUIRES Adafruit_BusIO\n" NEW_CONTENT "${CMAKE_CONTENT}")
+            file(WRITE ${GFX_CMAKE} "${NEW_CONTENT}")
+            message(STATUS "Patched Adafruit_GFX_Library CMakeLists.txt: injected REQUIRES Adafruit_BusIO")
+        endif()
+    endif()
+endforeach()
+
 idf_component_register(
     SRCS ${SOURCES}
     INCLUDE_DIRS "."
-    REQUIRES esphome wifi arduino Adafruit_BusIO Adafruit_GFX_Library ArduinoJson PNGdec
+    REQUIRES esphome wifi arduino esp_http_client Adafruit_BusIO Adafruit_GFX_Library ArduinoJson PNGdec
 )
-
-if(TARGET __idf_arduino)
-    idf_component_get_property(ARDUINO_DIR arduino COMPONENT_DIR)
-    target_include_directories(${COMPONENT_LIB} PUBLIC
-        "${ARDUINO_DIR}/libraries/WiFiClientSecure/src"
-        "${ARDUINO_DIR}/libraries/WiFi/src"
-    )
-endif()
-
-if(TARGET __idf_Adafruit_GFX_Library AND TARGET __idf_Adafruit_BusIO)
-    target_link_libraries(__idf_Adafruit_GFX_Library PUBLIC __idf_Adafruit_BusIO)
-    target_include_directories(__idf_Adafruit_GFX_Library PUBLIC $<TARGET_PROPERTY:__idf_Adafruit_BusIO,INTERFACE_INCLUDE_DIRECTORIES>)
-endif()

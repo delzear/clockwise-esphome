@@ -305,62 +305,54 @@ bool Clockface::deserializeDefinition()
     return false;
   }
 
-  WiFiClientSecure client;
-  String serverStr = String(_server.c_str());
-  String fileStr = String("/" + String(_file.c_str()) + ".json");
-  uint16_t port = 4443;
-
-  if (serverStr.startsWith("raw.")) {
-    port = 443;
-    fileStr = String("/jnthas/clock-club/main/shared" + fileStr);
+  std::string url;
+  if (_server.rfind("raw.", 0) == 0) {
+    url = "https://" + _server + "/jnthas/clock-club/main/shared/" + _file + ".json";
+  } else if (_server.rfind("http://", 0) == 0 || _server.rfind("https://", 0) == 0) {
+    url = _server + "/" + _file + ".json";
+  } else {
+    url = "http://" + _server + ":4443/" + _file + ".json";
   }
 
-  client.setInsecure();
-  client.setTimeout(10000);
-  if (!client.connect(serverStr.c_str(), port))
-  {
-    Serial.println("Canvas HTTP connection failed");
+  esp_http_client_config_t config = {};
+  config.url = url.c_str();
+  config.timeout_ms = 10000;
+  config.skip_cert_common_name_check = true;
+
+  esp_http_client_handle_t client = esp_http_client_init(&config);
+  if (client == NULL) {
+    drawSplashScreen(0xC904, "Init failed");
+    return false;
+  }
+
+  esp_err_t err = esp_http_client_open(client, 0);
+  if (err != ESP_OK) {
+    esp_http_client_cleanup(client);
     drawSplashScreen(0xC904, "Connect failed");
     return false;
   }
 
-  client.printf("GET %s HTTP/1.1\r\n", fileStr.c_str());
-  client.printf("Host: %s\r\n", serverStr.c_str());
-  client.println("Connection: close");
-  if (client.println() == 0)
-  {
-    Serial.println("Canvas HTTP request failed");
-    client.stop();
-    drawSplashScreen(0xC904, "Req failed");
-    return false;
-  }
-
-  char status[32] = {0};
-  client.readBytesUntil('\r', status, sizeof(status));
-
-  if (strstr(status, "200 OK") == NULL)
-  {
-    Serial.print("Canvas HTTP status error: ");
-    Serial.println(status);
-    client.stop();
+  int content_length = esp_http_client_fetch_headers(client);
+  int status_code = esp_http_client_get_status_code(client);
+  if (status_code != 200) {
+    esp_http_client_close(client);
+    esp_http_client_cleanup(client);
     drawSplashScreen(0xC904, "HTTP Error");
     return false;
   }
 
-  char endOfHeaders[] = "\r\n\r\n";
-  if (!client.find(endOfHeaders))
-  {
-    Serial.println("Canvas HTTP header error");
-    client.stop();
-    drawSplashScreen(0xC904, "Header error");
-    return false;
+  std::string response_body;
+  char buffer[512];
+  int read_len = 0;
+  while ((read_len = esp_http_client_read(client, buffer, sizeof(buffer))) > 0) {
+    response_body.append(buffer, read_len);
   }
 
-  DeserializationError error = deserializeJson(doc, client);
-  client.stop();
+  esp_http_client_close(client);
+  esp_http_client_cleanup(client);
 
-  if (error)
-  {
+  DeserializationError error = deserializeJson(doc, response_body);
+  if (error) {
     drawSplashScreen(0xC904, "JSON Error");
     Serial.print("deserializeJson() failed: ");
     Serial.println(error.c_str());

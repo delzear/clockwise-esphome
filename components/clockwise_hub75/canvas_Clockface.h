@@ -7,7 +7,7 @@
 #include <vector>
 #include <memory>
 #include <string>
-#include <WiFiClientSecure.h>
+#include <esp_http_client.h>
 
 #include "IClockface.h"
 #include "picopixel.h"
