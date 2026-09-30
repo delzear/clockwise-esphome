@@ -4,17 +4,16 @@
 substitutions:
   device_name: clockwise-hdwf2
   friendly_name: Clockwise HD-WF2 Clock
-  
+
   # HD-WF2 Board with 64×64 FM6126A panel
   panel_width: "64"
   panel_height: "64"
   initial_brightness: "128"
 
-  
   # LDR Configuration (optional - set enable_ldr: "true" to enable)
-  enable_ldr: "false"  # Set to "true" to enable auto-brightness
-  ldr_pin: GPIO4  # Light sensor pin (only used if enable_ldr is true)
-  ldr_update_interval: "2s"  # How often to check light levels
+  enable_ldr: "false" # Set to "true" to enable auto-brightness
+  ldr_pin: GPIO4 # Light sensor pin (only used if enable_ldr is true)
+  ldr_update_interval: "2s" # How often to check light levels
 
 esphome:
   name: ${device_name}
@@ -23,11 +22,11 @@ esphome:
   platformio_options:
     lib_deps:
       - adafruit/Adafruit BusIO
-      - adafruit/Adafruit GFX Library  # Required for Clockface compatibility
+      - adafruit/Adafruit GFX Library # Required for Clockface compatibility
     lib_ldf_mode: chain+
     build_flags:
-      - -Os  # Optimize for size
-      - -DCORE_DEBUG_LEVEL=1  # Reduce debug level
+      - -Os # Optimize for size
+      - -DCORE_DEBUG_LEVEL=1 # Reduce debug level
   on_boot:
     - priority: 600
       then:
@@ -47,10 +46,9 @@ esphome:
       then:
         - lambda: |-
             // After everything is initialized, apply time source and special dates
-            auto ts = id(time_source_selector).state;
+            auto ts = id(time_source_selector).current_option;
             int src = (ts == "NTP") ? 1 : (ts == "RTC") ? 2 : 0;
             id(clockwise_main).set_time_source(src);
-
 
 esp32:
   board: esp32-s3-devkitc-1
@@ -64,19 +62,19 @@ globals:
   - id: auto_brightness_enabled
     type: bool
     restore_value: true
-    initial_value: '${enable_ldr}'
+    initial_value: "${enable_ldr}"
   - id: saved_brightness
     type: int
     restore_value: true
-    initial_value: '${initial_brightness}'
+    initial_value: "${initial_brightness}"
   - id: saved_clockface
     type: int
     restore_value: true
-    initial_value: '1'           # MARIO
+    initial_value: "1" # MARIO
   - id: saved_color_order
     type: int
     restore_value: true
-    initial_value: '0'           # RGB
+    initial_value: "0" # RGB
 
 # Enable logging
 logger:
@@ -101,7 +99,7 @@ ota:
 wifi:
   ssid: !secret wifi_ssid
   password: !secret wifi_password
-  
+
   # Enable fallback hotspot
   ap:
     ssid: "${device_name} Fallback"
@@ -125,14 +123,14 @@ i2c:
 time:
   - platform: homeassistant
     id: homeassistant_time
-    timezone: Europe/Vienna  # Change to your timezone
+    timezone: Europe/Vienna # Change to your timezone
     on_time_sync:
       then:
         - logger.log: "Time synchronized with Home Assistant"
 
   - platform: sntp
     id: ntp_time
-    timezone: Europe/Vienna  # Change to your timezone
+    timezone: Europe/Vienna # Change to your timezone
     servers:
       - 0.pool.ntp.org
       - 1.pool.ntp.org
@@ -145,7 +143,7 @@ time:
   - platform: bm8563
     id: rtc_time
     address: 0x51
-    update_interval: 3600s  # Only re-read chip hourly so it doesn't override HA/NTP every 60s
+    update_interval: 3600s # Only re-read chip hourly so it doesn't override HA/NTP every 60s
     on_time_sync:
       then:
         - logger.log: "Time synchronized with BM8563 RTC"
@@ -166,22 +164,22 @@ display:
     # Panel dimensions - 64×64 FM6126A panel
     panel_width: ${panel_width}
     panel_height: ${panel_height}
-    
+
     # Display settings
     brightness: ${initial_brightness}
     bit_depth: 8
-    min_refresh_rate: 120  # ESP32-S3 can handle higher refresh rates
+    min_refresh_rate: 120 # ESP32-S3 can handle higher refresh rates
     double_buffer: false
     rotation: 0 # (0=default, 90, 180, 270)
-    
+
     # Hardware configuration - FM6126A driver chip
     shift_driver: FM6126A
-    scan_wiring: STANDARD_TWO_SCAN  # 1/32 scan for 64px high
+    scan_wiring: STANDARD_TWO_SCAN # 1/32 scan for 64px high
 
     # Timing configuration
     clock_speed: 20MHZ
     clock_phase: false
-    
+
     # Disable display updates - clockwise component handles rendering
     # Note: Upstream changed update_interval to integer (ms), never = 4294967295
     update_interval: 4294967295ms
@@ -190,9 +188,8 @@ display:
 clockwise_hub75:
   id: clockwise_main
   hub75_id: matrix_display
-  clockface_type: MARIO  # Options: PACMAN, MARIO
+  clockface_type: MARIO # Options: PACMAN, MARIO
   initial_brightness: ${initial_brightness}
-
 
 # Home Assistant Entities
 
@@ -235,12 +232,12 @@ switch:
     turn_on_action:
       - globals.set:
           id: auto_brightness_enabled
-          value: 'true'
+          value: "true"
       - logger.log: "Auto-brightness enabled"
     turn_off_action:
       - globals.set:
           id: auto_brightness_enabled
-          value: 'false'
+          value: "false"
       - logger.log: "Auto-brightness disabled"
 
 # Select entities
@@ -284,7 +281,6 @@ select:
             // 0 = Home Assistant, 1 = NTP, 2 = RTC
             int source = (x == "Home Assistant") ? 0 : (x == "NTP") ? 1 : 2;
             id(clockwise_main).set_time_source(source);
-
 
   - platform: template
     id: panel_color_order_selector
@@ -341,7 +337,7 @@ sensor:
     name: "Ambient Light"
     id: ambient_light
     update_interval: ${ldr_update_interval}
-    attenuation: 12db  # For 0-3.3V range
+    attenuation: 12db # For 0-3.3V range
     filters:
       # Smooth readings to avoid flickering
       - sliding_window_moving_average:
@@ -350,9 +346,9 @@ sensor:
       # Calibrate based on YOUR actual lighting conditions
       # Measured values: Dark=1.27V, Bright=3.13V
       - calibrate_linear:
-          - 1.3 -> 0.0    # Dark (covered) voltage -> 0%
-          - 3.0 -> 100.0  # Bright (full light) voltage -> 100%
-      - lambda: return min(100.0f, max(0.0f, x));  # Clamp to 0-100%
+          - 1.3 -> 0.0 # Dark (covered) voltage -> 0%
+          - 3.0 -> 100.0 # Bright (full light) voltage -> 100%
+      - lambda: return min(100.0f, max(0.0f, x)); # Clamp to 0-100%
     unit_of_measurement: "%"
     accuracy_decimals: 0
     entity_category: diagnostic
@@ -369,17 +365,17 @@ sensor:
               if (!id(display_power).state) {
                 return;  // Display is off, don't change brightness
               }
-              
+
               // Map ambient light (0-100%) to brightness (20-255)
               // Minimum brightness: 20 (always visible)
               // Maximum brightness: 255 (full brightness)
               int min_brightness = 20;
               int max_brightness = 255;
               int brightness = min_brightness + (x / 100.0) * (max_brightness - min_brightness);
-              
+
               // Apply brightness to display
               id(clockwise_main).set_brightness(brightness);
-              
+
               // Update the number entity so it shows in UI
               id(display_brightness).publish_state(brightness);
 
@@ -387,12 +383,12 @@ sensor:
     name: "WiFi Signal"
     update_interval: 60s
     entity_category: diagnostic
-  
+
   - platform: uptime
     name: "Uptime"
     update_interval: 60s
     entity_category: diagnostic
-  
+
   # ESP32-S3 internal temperature
   - platform: internal_temperature
     name: "ESP32-S3 Temperature"
@@ -457,4 +453,3 @@ button:
         - logger.log: "Syncing time to RTC..."
         - bm8563.write_time:
             id: rtc_time
-
