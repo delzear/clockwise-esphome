@@ -60,6 +60,8 @@ CONFIG_SCHEMA = cv.Schema({
 
 async def to_code(config):
     cg.add_build_flag("-DNO_SIMD")
+    # Vendored BusIO headers - global include so Adafruit_GFX_Library can find them
+    cg.add_build_flag("-Isrc/esphome/components/clockwise_hub75/busio_headers")
     cg.add_library("adafruit/Adafruit BusIO", "^1.14.1")
     cg.add_library("adafruit/Adafruit GFX Library", "^1.11.5")
     cg.add_library("bblanchon/ArduinoJson", "^6.21.4")
