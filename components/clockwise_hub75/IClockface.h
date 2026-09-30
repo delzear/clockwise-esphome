@@ -4,7 +4,7 @@
 
 class IClockface {
 public:
-    //virtual void setup(DateTime *dateTime) = 0;
+    virtual ~IClockface() = default;
     virtual void setup(CWDateTime *dateTime) = 0;
     virtual void update() = 0;
 };

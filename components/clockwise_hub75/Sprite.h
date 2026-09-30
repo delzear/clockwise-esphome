@@ -11,6 +11,7 @@ class Sprite {
     uint8_t _height = 0;
 
   public:
+    virtual ~Sprite() = default;
     boolean collidedWith(Sprite* sprite);
     void logPosition();
 
