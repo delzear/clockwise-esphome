@@ -1,0 +1,278 @@
+# Clockwise HUB75 Clock - Canvas Clockface Configuration
+# ESP32-S3 with 64×64 HUB75 LED Panel
+
+substitutions:
+  device_name: clockwise-canvas
+  friendly_name: Clockwise Canvas Clock
+
+  # Panel configuration
+  panel_width: "64"
+  panel_height: "64"
+  initial_brightness: "128"
+
+  # Canvas Clockface Configuration
+  canvas_server: "raw.githubusercontent.com" # Server hosting Canvas JSON files
+  canvas_file: "pac-man" # Canvas definition (e.g., pac-man, nyan-cat)
+
+  # LDR Configuration (optional - set enable_ldr: "true" to enable)
+  enable_ldr: "false"
+  ldr_pin: GPIO4
+  ldr_update_interval: "2s"
+
+esphome:
+  name: ${device_name}
+  friendly_name: ${friendly_name}
+  comment: "Clockwise Clock with Canvas Clockface Integration"
+  platformio_options:
+    lib_deps:
+      - adafruit/Adafruit BusIO
+      - adafruit/Adafruit GFX Library
+      - bblanchon/ArduinoJson@^6.21.4
+      - bitbank2/PNGdec@^1.0.1
+    lib_ldf_mode: chain+
+    build_flags:
+      - -Os
+      - -DCORE_DEBUG_LEVEL=1
+
+  on_boot:
+    - priority: 600
+      then:
+        - lambda: |-
+            id(clockwise_main).set_clockface_type(
+              static_cast<esphome::clockwise_hub75::ClockfaceType>((int)id(saved_clockface)));
+            id(clockwise_main).set_panel_color_order(
+              static_cast<esphome::clockwise_hub75::PanelColorOrder>((int)id(saved_color_order)));
+            id(clockwise_main).set_initial_brightness((uint8_t)(int)id(saved_brightness));
+            id(clockwise_main).set_ha_time(id(homeassistant_time));
+            id(clockwise_main).set_ntp_time(id(ntp_time));
+            id(clockwise_main).set_rtc_time(id(rtc_time));
+    - priority: -100
+      then:
+        - lambda: |-
+            auto ts = id(time_source_selector).state;
+            int src = (ts == "NTP") ? 1 : (ts == "RTC") ? 2 : 0;
+            id(clockwise_main).set_time_source(src);
+
+esp32:
+  board: esp32-s3-devkitc-1
+  variant: esp32s3
+  framework:
+    type: arduino
+    version: recommended
+
+globals:
+  - id: auto_brightness_enabled
+    type: bool
+    restore_value: true
+    initial_value: "${enable_ldr}"
+  - id: saved_brightness
+    type: int
+    restore_value: true
+    initial_value: "${initial_brightness}"
+  - id: saved_clockface
+    type: int
+    restore_value: true
+    initial_value: "2" # 0=PACMAN, 1=MARIO, 2=CANVAS
+  - id: saved_color_order
+    type: int
+    restore_value: true
+    initial_value: "0" # RGB
+
+logger:
+  level: DEBUG
+
+api:
+  encryption:
+    key: !secret api_encryption_key
+  reboot_timeout: 0s
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "${device_name} Fallback"
+    password: !secret wifi_ap_password
+
+captive_portal:
+
+i2c:
+  sda: 41
+  scl: 42
+  scan: true
+
+time:
+  - platform: homeassistant
+    id: homeassistant_time
+    timezone: Europe/Vienna
+    on_time_sync:
+      then:
+        - logger.log: "Time synchronized with Home Assistant"
+
+  - platform: sntp
+    id: ntp_time
+    timezone: Europe/Vienna
+    servers:
+      - 0.pool.ntp.org
+      - 1.pool.ntp.org
+      - 2.pool.ntp.org
+    update_interval: 3600s
+
+  - platform: bm8563
+    id: rtc_time
+    address: 0x51
+    update_interval: 3600s
+
+external_components:
+  # Use local component or update source to your GitHub fork (e.g. github://<your-username>/clockwise-esphome@main)
+  - source:
+      type: local
+      path: components
+    components: [clockwise_hub75]
+
+display:
+  - platform: hub75
+    id: matrix_display
+    board: huidu-hd-wf2
+    panel_width: ${panel_width}
+    panel_height: ${panel_height}
+    brightness: ${initial_brightness}
+    bit_depth: 8
+    min_refresh_rate: 120
+    double_buffer: false
+    rotation: 0
+    shift_driver: FM6126A
+    scan_wiring: STANDARD_TWO_SCAN
+    clock_speed: 20MHZ
+    clock_phase: false
+    update_interval: 4294967295ms
+
+clockwise_hub75:
+  id: clockwise_main
+  hub75_id: matrix_display
+  clockface_type: CANVAS
+  canvas_server: ${canvas_server}
+  canvas_file: ${canvas_file}
+  initial_brightness: ${initial_brightness}
+
+number:
+  - platform: template
+    id: display_brightness
+    name: "Display Brightness"
+    icon: mdi:brightness-5
+    entity_category: config
+    min_value: 0
+    max_value: 255
+    step: 1
+    mode: slider
+    lambda: return id(saved_brightness);
+    set_action:
+      - globals.set:
+          id: saved_brightness
+          value: !lambda return (int)x;
+      - lambda: id(clockwise_main).set_brightness((uint8_t)x);
+
+switch:
+  - platform: clockwise_hub75
+    clockwise_hub75_id: clockwise_main
+    id: display_power
+    name: "Display Power"
+    icon: mdi:power
+    entity_category: config
+    restore_mode: RESTORE_DEFAULT_ON
+
+select:
+  - platform: template
+    id: clockface_selector
+    name: "Clockface"
+    icon: mdi:clock-outline
+    entity_category: config
+    options:
+      - "Pacman"
+      - "Mario"
+      - "Canvas"
+    initial_option: "Canvas"
+    restore_value: true
+    optimistic: true
+    on_value:
+      then:
+        - globals.set:
+            id: saved_clockface
+            value: !lambda |-
+              if (x == "Mario") return 1;
+              if (x == "Canvas") return 2;
+              return 0;
+        - lambda: |-
+            if (x == "Mario") id(clockwise_main).switch_clockface(esphome::clockwise_hub75::MARIO);
+            else if (x == "Canvas") id(clockwise_main).switch_clockface(esphome::clockwise_hub75::CANVAS);
+            else id(clockwise_main).switch_clockface(esphome::clockwise_hub75::PACMAN);
+
+  - platform: template
+    id: time_source_selector
+    name: "Time Source"
+    icon: mdi:clock
+    options:
+      - "Home Assistant"
+      - "NTP"
+      - "RTC"
+    initial_option: "Home Assistant"
+    restore_value: true
+    optimistic: true
+    on_value:
+      then:
+        - lambda: |-
+            int source = (x == "Home Assistant") ? 0 : (x == "NTP") ? 1 : 2;
+            id(clockwise_main).set_time_source(source);
+
+  - platform: template
+    id: panel_color_order_selector
+    name: "Panel Color Order"
+    icon: mdi:palette-outline
+    entity_category: config
+    options:
+      - "RGB"
+      - "RBG"
+      - "GRB"
+      - "GBR"
+      - "BRG"
+      - "BGR"
+    initial_option: "RGB"
+    restore_value: true
+    optimistic: true
+    on_value:
+      then:
+        - globals.set:
+            id: saved_color_order
+            value: !lambda |-
+              if (x == "RBG") return 1;
+              if (x == "GRB") return 2;
+              if (x == "GBR") return 3;
+              if (x == "BRG") return 4;
+              if (x == "BGR") return 5;
+              return 0;
+        - lambda: |-
+            esphome::clockwise_hub75::PanelColorOrder order = esphome::clockwise_hub75::RGB;
+            if (x == "RBG") order = esphome::clockwise_hub75::RBG;
+            else if (x == "GRB") order = esphome::clockwise_hub75::GRB;
+            else if (x == "GBR") order = esphome::clockwise_hub75::GBR;
+            else if (x == "BRG") order = esphome::clockwise_hub75::BRG;
+            else if (x == "BGR") order = esphome::clockwise_hub75::BGR;
+            id(clockwise_main).set_panel_color_order(order);
+
+button:
+  - platform: restart
+    name: "Restart"
+    entity_category: diagnostic
+
+  - platform: template
+    name: "Sync Time to RTC"
+    icon: mdi:clock-check
+    entity_category: config
+    on_press:
+      then:
+        - logger.log: "Syncing time to RTC..."
+        - bm8563.write_time:
+            id: rtc_time
