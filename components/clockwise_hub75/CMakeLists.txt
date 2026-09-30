@@ -1,20 +1,22 @@
 file(GLOB_RECURSE SOURCES "*.cpp")
 
-# Glob all Adafruit_GFX_Library CMakeLists.txt files under C:/esphb/ and pio_components and inject REQUIRES Adafruit_BusIO
-file(GLOB_RECURSE GFX_CMAKES 
-    "C:/esphb/*/*/*/*/*/Adafruit_GFX_Library/CMakeLists.txt" 
-    "C:/esphb/*/*/*/*/*/*/Adafruit_GFX_Library/CMakeLists.txt"
-    "${CMAKE_BINARY_DIR}/../pio_components/*/*/*/Adafruit_GFX_Library/CMakeLists.txt"
-    "${CMAKE_BINARY_DIR}/../../pio_components/*/*/*/Adafruit_GFX_Library/CMakeLists.txt"
+# Recursively find all CMakeLists.txt files in build directories and patch Adafruit_GFX_Library CMakeLists.txt
+file(GLOB_RECURSE ALL_CMAKES 
+    "C:/esphb/CMakeLists.txt" 
+    "C:/esphb/*"
+    "${CMAKE_BINARY_DIR}/../CMakeLists.txt"
+    "${CMAKE_BINARY_DIR}/../../CMakeLists.txt"
 )
 
-foreach(GFX_CMAKE ${GFX_CMAKES})
-    if(EXISTS ${GFX_CMAKE})
-        file(READ ${GFX_CMAKE} GFX_CONTENT)
-        if(NOT GFX_CONTENT MATCHES "Adafruit_BusIO")
-            string(REPLACE "idf_component_register(" "idf_component_register(\n    REQUIRES Adafruit_BusIO\n" GFX_NEW "${GFX_CONTENT}")
-            file(WRITE ${GFX_CMAKE} "${GFX_NEW}")
-            message(STATUS "[Clockwise] Successfully patched Adafruit_GFX_Library CMakeLists.txt at ${GFX_CMAKE}")
+foreach(GFX_CMAKE ${ALL_CMAKES})
+    if(GFX_CMAKE MATCHES "Adafruit_GFX_Library/CMakeLists.txt")
+        if(EXISTS ${GFX_CMAKE})
+            file(READ ${GFX_CMAKE} GFX_CONTENT)
+            if(NOT GFX_CONTENT MATCHES "Adafruit_BusIO")
+                string(REPLACE "idf_component_register(" "idf_component_register(\n    REQUIRES Adafruit_BusIO\n" GFX_NEW "${GFX_CONTENT}")
+                file(WRITE ${GFX_CMAKE} "${GFX_NEW}")
+                message(STATUS "[Clockwise] Successfully patched Adafruit_GFX_Library CMakeLists.txt at ${GFX_CMAKE}")
+            endif()
         endif()
     endif()
 endforeach()
