@@ -74,6 +74,3 @@ async def to_code(config):
     cg.add(var.set_initial_brightness(config[CONF_INITIAL_BRIGHTNESS]))
     cg.add(var.set_canvas_server(config[CONF_CANVAS_SERVER]))
     cg.add(var.set_canvas_file(config[CONF_CANVAS_FILE]))
-
-    cg.add_build_flag("-DNO_SIMD")
-    cg.add_build_flag("-I.esphome/build/${device_name}/.esphome/arduino_libraries/Adafruit_BusIO")
