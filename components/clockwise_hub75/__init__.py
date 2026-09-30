@@ -57,8 +57,11 @@ CONFIG_SCHEMA = cv.Schema({
 
 
 async def to_code(config):
+    cg.add_build_flag("-DNO_SIMD")
+    cg.add_library("adafruit/Adafruit BusIO", "^1.14.1")
+    cg.add_library("adafruit/Adafruit GFX Library", "^1.11.5")
     cg.add_library("bblanchon/ArduinoJson", "^6.21.4")
-    cg.add_library("bitbank2/PNGdec", "^1.0.1")
+    cg.add_library("bitbank2/PNGdec", "1.0.1")
 
     var = cg.new_Pvariable(config[CONF_ID])
     await cg.register_component(var, config)
@@ -71,3 +74,6 @@ async def to_code(config):
     cg.add(var.set_initial_brightness(config[CONF_INITIAL_BRIGHTNESS]))
     cg.add(var.set_canvas_server(config[CONF_CANVAS_SERVER]))
     cg.add(var.set_canvas_file(config[CONF_CANVAS_FILE]))
+
+    cg.add_build_flag("-DNO_SIMD")
+    cg.add_build_flag("-I.esphome/build/${device_name}/.esphome/arduino_libraries/Adafruit_BusIO")
