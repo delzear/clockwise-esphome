@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include <Adafruit_I2CDevice.h>
 #include <Adafruit_GFX.h>
 #include "Locator.h"
 #include <ArduinoJson.h>
