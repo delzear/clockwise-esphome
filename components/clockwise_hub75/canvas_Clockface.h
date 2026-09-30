@@ -11,9 +11,9 @@
 
 #include "IClockface.h"
 #include "picopixel.h"
-#include "fonts/atari.h"
-#include "fonts/hour8pt7b.h"
-#include "fonts/minute7pt7b.h"
+#include "atari.h"
+#include "hour8pt7b.h"
+#include "minute7pt7b.h"
 #include "PNGRender.h"
 #include "CustomSprite.h"
 
