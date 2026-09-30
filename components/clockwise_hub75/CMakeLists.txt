@@ -1,20 +1,15 @@
 file(GLOB_RECURSE SOURCES "*.cpp")
 
+# Globally add Adafruit_BusIO header include directory for all components
+file(GLOB_RECURSE BUSIO_HEADERS "${CMAKE_BINARY_DIR}/../pio_components/*/Adafruit_BusIO/Adafruit_I2CDevice.h" "${CMAKE_BINARY_DIR}/../../pio_components/*/Adafruit_BusIO/Adafruit_I2CDevice.h")
+foreach(BUSIO_HEADER ${BUSIO_HEADERS})
+    get_filename_component(BUSIO_DIR ${BUSIO_HEADER} DIRECTORY)
+    include_directories(SYSTEM "${BUSIO_DIR}")
+    message(STATUS "[Clockwise] Added global include directory for Adafruit_BusIO: ${BUSIO_DIR}")
+endforeach()
+
 idf_component_register(
     SRCS ${SOURCES}
     INCLUDE_DIRS "." "fonts"
     REQUIRES esphome wifi arduino esp_http_client Adafruit_BusIO Adafruit_GFX_Library ArduinoJson PNGdec
 )
-
-# Defer linking Adafruit_BusIO into Adafruit_GFX_Library until all CMake targets are declared
-cmake_language(DEFER CALL _patch_adafruit_gfx_target)
-
-function(_patch_adafruit_gfx_target)
-    if(TARGET __idf_Adafruit_GFX_Library AND TARGET __idf_Adafruit_BusIO)
-        target_link_libraries(__idf_Adafruit_GFX_Library PUBLIC __idf_Adafruit_BusIO)
-        target_include_directories(__idf_Adafruit_GFX_Library PUBLIC $<TARGET_PROPERTY:__idf_Adafruit_BusIO,INTERFACE_INCLUDE_DIRECTORIES>)
-        message(STATUS "[Clockwise] Deferred patch: Linked Adafruit_BusIO into Adafruit_GFX_Library successfully!")
-    else()
-        message(STATUS "[Clockwise] Deferred patch check: GFX_Library or BusIO target not found")
-    endif()
-endfunction()
