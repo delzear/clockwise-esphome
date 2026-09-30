@@ -18,7 +18,8 @@ namespace clockwise_hub75 {
 enum ClockfaceType {
     PACMAN = 0,
     MARIO = 1,
-    CLOCK = 2
+    CANVAS = 2,
+    CLOCK = 3
 };
 
 enum PanelColorOrder {
@@ -46,6 +47,8 @@ class ClockwiseHUB75 : public PollingComponent {
   void set_clockface_type(ClockfaceType type) { clockface_type_ = type; }
   void set_initial_brightness(uint8_t brightness) { initial_brightness_ = brightness; }
   void set_panel_color_order(PanelColorOrder order);
+  void set_canvas_server(const std::string &server) { canvas_server_ = server; }
+  void set_canvas_file(const std::string &file) { canvas_file_ = file; }
 
   // Control methods for Home Assistant
   void set_brightness(uint8_t brightness);
@@ -57,6 +60,8 @@ class ClockwiseHUB75 : public PollingComponent {
   bool get_power() const { return power_state_; }
   ClockfaceType get_clockface_type() const { return clockface_type_; }
   PanelColorOrder get_panel_color_order() const { return panel_color_order_; }
+  const std::string &get_canvas_server() const { return canvas_server_; }
+  const std::string &get_canvas_file() const { return canvas_file_; }
 
  protected:
   esphome::hub75::HUB75Display *hub75_display_{nullptr};
@@ -73,6 +78,8 @@ class ClockwiseHUB75 : public PollingComponent {
   uint8_t initial_brightness_{128};
   uint8_t current_brightness_{128};
   bool power_state_{true};
+  std::string canvas_server_{"raw.githubusercontent.com"};
+  std::string canvas_file_{"pac-man"};
 
   void set_time(time::RealTimeClock *t) { time_ = t; }
   void update_display_();

@@ -141,7 +141,9 @@ display:
 clockwise_hub75:
   id: clockwise_main
   hub75_id: matrix_display
-  clockface_type: MARIO          # Options: MARIO, PACMAN
+  clockface_type: CANVAS         # Options: MARIO, PACMAN, CANVAS
+  canvas_server: "raw.githubusercontent.com"  # Optional Canvas server
+  canvas_file: "pac-man"         # Optional Canvas JSON file name
   panel_color_order: RGB         # Fix wrong colors: RGB, RBG, GRB, GBR, BRG, BGR
   initial_brightness: 128
 
@@ -174,14 +176,17 @@ select:
     options:
       - "Pacman"
       - "Mario"
-    initial_option: "Pacman"
+      - "Canvas"
+    initial_option: "Canvas"
     restore_value: true
     optimistic: true
     on_value:
       then:
         - lambda: |-
             if (x == "Mario") id(clockwise_main).switch_clockface(esphome::clockwise_hub75::MARIO);
+            else if (x == "Canvas") id(clockwise_main).switch_clockface(esphome::clockwise_hub75::CANVAS);
             else id(clockwise_main).switch_clockface(esphome::clockwise_hub75::PACMAN);
+
 
   # Time source selector
   - platform: template

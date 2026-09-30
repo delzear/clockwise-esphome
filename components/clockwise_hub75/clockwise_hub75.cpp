@@ -6,6 +6,7 @@
 #include "GFXWrapper.h"
 #include "pacman_Clockface.h"
 #include "mario_Clockface.h"
+#include "canvas_Clockface.h"
 
 ::CWDateTime g_dt;
 
@@ -36,12 +37,14 @@ void ClockwiseHUB75::set_time_source(int source) {
   }
 }
 
-static IClockface *create_clockface_(ClockfaceType type, GFXWrapper *gfx) {
+static IClockface *create_clockface_(ClockfaceType type, GFXWrapper *gfx, const std::string &server, const std::string &file) {
   switch (type) {
     case PACMAN:
       return new pacman::Clockface(gfx);
     case MARIO:
       return new mario::Clockface(gfx);
+    case CANVAS:
+      return new canvas::Clockface(gfx, server, file);
     default:
       return nullptr;
   }
@@ -54,7 +57,7 @@ void ClockwiseHUB75::set_panel_color_order(PanelColorOrder order) {
     gfx_wrapper_->set_color_order(static_cast<GFXWrapper::ColorChannelOrder>(order));
   }
 
-  // Force full redraw for clockfaces that keep static pixels on screen (e.g. Pacman/Mario).
+  // Force full redraw for clockfaces that keep static pixels on screen (e.g. Pacman/Mario/Canvas).
   if (clockface_ != nullptr && gfx_wrapper_ != nullptr) {
     switch_clockface(clockface_type_, true);
   }
@@ -87,7 +90,7 @@ void ClockwiseHUB75::setup() {
   set_time_source(time_source_);
 
   // Create initial clockface
-  clockface_ = create_clockface_(clockface_type_, gfx_wrapper_);
+  clockface_ = create_clockface_(clockface_type_, gfx_wrapper_, canvas_server_, canvas_file_);
   if (clockface_ != nullptr) {
     clockface_->setup(&g_dt);
     ESP_LOGCONFIG(TAG, "Clockface %d initialized", static_cast<int>(clockface_type_));
@@ -104,6 +107,8 @@ void ClockwiseHUB75::dump_config() {
   ESP_LOGCONFIG(TAG, "  Panel Color Order: %d", static_cast<int>(panel_color_order_));
   ESP_LOGCONFIG(TAG, "  Initial Brightness: %d", initial_brightness_);
   ESP_LOGCONFIG(TAG, "  Current Brightness: %d", current_brightness_);
+  ESP_LOGCONFIG(TAG, "  Canvas Server: %s", canvas_server_.c_str());
+  ESP_LOGCONFIG(TAG, "  Canvas File: %s", canvas_file_.c_str());
   ESP_LOGCONFIG(TAG, "  Power State: %s", YESNO(power_state_));
 }
 
@@ -158,7 +163,7 @@ void ClockwiseHUB75::switch_clockface(ClockfaceType type, bool force) {
   // Update the clockface type
   clockface_type_ = type;
 
-  clockface_ = create_clockface_(clockface_type_, gfx_wrapper_);
+  clockface_ = create_clockface_(clockface_type_, gfx_wrapper_, canvas_server_, canvas_file_);
   if (clockface_ != nullptr) {
     clockface_->setup(&g_dt);
     ESP_LOGI(TAG, "Switched to clockface %d", static_cast<int>(clockface_type_));
