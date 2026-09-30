@@ -5,8 +5,34 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import CONF_ID
 
+import os
+
 DEPENDENCIES = ["wifi"]
 CODEOWNERS = ["@clockwise"]
+
+
+def _patch_adafruit_gfx_cmake():
+    for search_root in [os.getcwd(), os.path.abspath(".."), os.path.abspath("../..")]:
+        if not os.path.exists(search_root):
+            continue
+        for root, dirs, files in os.walk(search_root):
+            if "Adafruit_GFX_Library" in root or "Adafruit-GFX-Library" in root:
+                for f in files:
+                    if f == "CMakeLists.txt":
+                        path = os.path.join(root, f)
+                        try:
+                            with open(path, "r", encoding="utf-8") as file:
+                                content = file.read()
+                            if "idf_component_register" in content and "Adafruit_BusIO" not in content:
+                                new_content = content.replace(
+                                    "idf_component_register(",
+                                    "idf_component_register(\n    REQUIRES Adafruit_BusIO\n"
+                                )
+                                with open(path, "w", encoding="utf-8") as file:
+                                    file.write(new_content)
+                        except Exception:
+                            pass
+
 
 clockwise_hub75_ns = cg.esphome_ns.namespace("clockwise_hub75")
 # Use MockObj to match hub75 component's fully-qualified namespace
@@ -56,6 +82,7 @@ CONFIG_SCHEMA = cv.Schema({
 
 
 async def to_code(config):
+    _patch_adafruit_gfx_cmake()
     cg.add_build_flag("-DNO_SIMD")
     cg.add_library("adafruit/Adafruit BusIO", "^1.14.1")
     cg.add_library("adafruit/Adafruit GFX Library", "^1.11.5")
