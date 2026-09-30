@@ -60,8 +60,6 @@ CONFIG_SCHEMA = cv.Schema({
 
 async def to_code(config):
     cg.add_build_flag("-DNO_SIMD")
-    cg.add_library("WiFi", "")
-    cg.add_library("WiFiClientSecure", "")
     cg.add_library("adafruit/Adafruit BusIO", "^1.14.1")
     cg.add_library("adafruit/Adafruit GFX Library", "^1.11.5")
     cg.add_library("bblanchon/ArduinoJson", "^6.21.4")
