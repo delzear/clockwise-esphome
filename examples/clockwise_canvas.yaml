@@ -23,6 +23,10 @@ esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
   comment: "Clockwise Clock with Canvas Clockface Integration"
+  build_flags:
+    - -Os
+    - -DCORE_DEBUG_LEVEL=1
+    - -DNO_SIMD
   platformio_options:
     lib_deps:
       - adafruit/Adafruit BusIO
@@ -30,9 +34,6 @@ esphome:
       - bblanchon/ArduinoJson@^6.21.4
       - bitbank2/PNGdec@^1.0.1
     lib_ldf_mode: chain+
-    build_flags:
-      - -Os
-      - -DCORE_DEBUG_LEVEL=1
 
   on_boot:
     - priority: 600
