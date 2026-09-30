@@ -5,8 +5,7 @@ import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import CONF_ID
 
-# No explicit DEPENDENCIES needed - the hub75_id schema reference ensures ordering.
-# We pass HUB75Display pointer directly via codegen (no dynamic_cast/RTTI required).
+DEPENDENCIES = ["wifi"]
 CODEOWNERS = ["@clockwise"]
 
 clockwise_hub75_ns = cg.esphome_ns.namespace("clockwise_hub75")
