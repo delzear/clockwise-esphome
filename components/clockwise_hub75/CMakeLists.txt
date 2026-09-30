@@ -3,7 +3,7 @@ file(GLOB_RECURSE SOURCES "*.cpp")
 idf_component_register(
     SRCS ${SOURCES}
     INCLUDE_DIRS "."
-    REQUIRES esphome wifi arduino WiFiClientSecure Adafruit_BusIO Adafruit_GFX_Library ArduinoJson PNGdec
+    REQUIRES esphome wifi arduino WiFi WiFiClientSecure Adafruit_BusIO Adafruit_GFX_Library ArduinoJson PNGdec
 )
 
 if(TARGET __idf_Adafruit_GFX_Library AND TARGET __idf_Adafruit_BusIO)
