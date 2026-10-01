@@ -60,10 +60,11 @@ CONFIG_SCHEMA = cv.Schema({
 
 async def to_code(config):
     cg.add_build_flag("-DNO_SIMD")
-    # Vendored BusIO headers - global include so Adafruit_GFX_Library can find them
-    cg.add_build_flag("-Isrc/esphome/components/clockwise_hub75/busio_headers")
-    cg.add_library("adafruit/Adafruit BusIO", "^1.14.1")
-    cg.add_library("adafruit/Adafruit GFX Library", "^1.11.5")
+    # Adafruit GFX + BusIO are vendored directly into vendored_gfx/ subfolder
+    # so they compile as part of the 'src' component with shared include paths.
+    # This avoids the ESP-IDF cross-component dependency issue where
+    # Adafruit_GFX_Library can't find Adafruit_I2CDevice.h from Adafruit_BusIO.
+    cg.add_build_flag("-Isrc/esphome/components/clockwise_hub75/vendored_gfx")
     cg.add_library("bblanchon/ArduinoJson", "^6.21.4")
     cg.add_library("bitbank2/PNGdec", "1.0.1")
 

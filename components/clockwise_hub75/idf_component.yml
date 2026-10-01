@@ -1,5 +1,3 @@
 dependencies:
-  adafruit/adafruit_busio: "^1.14.1"
-  adafruit/adafruit_gfx_library: "^1.11.5"
   bblanchon/arduinojson: "^6.21.4"
   bitbank2/pngdec: "^1.0.1"
