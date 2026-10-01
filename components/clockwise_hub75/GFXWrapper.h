@@ -1,6 +1,6 @@
 #pragma once
 
-#include "vendored_gfx/Adafruit_GFX.h"
+#include "Adafruit_GFX.h"
 #include "esphome/components/hub75/hub75_component.h"
 
 // Adapter to make HUB75Display compatible with Adafruit_GFX-based code

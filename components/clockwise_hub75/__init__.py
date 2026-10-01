@@ -60,7 +60,7 @@ CONFIG_SCHEMA = cv.Schema({
 
 async def to_code(config):
     cg.add_build_flag("-DNO_SIMD")
-    # Adafruit GFX + BusIO are vendored directly into vendored_gfx/ subfolder
+    # Adafruit GFX + BusIO are vendored directly in the component root
     # using relative quoted #include paths from each source file.
 
     cg.add_library("bblanchon/ArduinoJson", "^6.21.4")

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include "vendored_gfx/Adafruit_GFX.h"
+#include "Adafruit_GFX.h"
 #include "Locator.h"
 #include <ArduinoJson.h>
 #include <vector>
