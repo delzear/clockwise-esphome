@@ -1,7 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
-#include <Adafruit_GFX.h>
+#include "vendored_gfx/Adafruit_GFX.h"
 #include "EventBus.h"
 
 class Locator {

@@ -2,7 +2,7 @@
 
 #include "mario_Super_Mario_Bros__24pt7b.h"
 
-#include <Adafruit_GFX.h>
+#include "vendored_gfx/Adafruit_GFX.h"
 #include "Tile.h"
 #include "Locator.h"
 #include "Game.h"

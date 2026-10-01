@@ -20,9 +20,6 @@ esphome:
   friendly_name: ${friendly_name}
   comment: "Clockwise Clock on HD-WF2 Board with FM6126A Driver"
   platformio_options:
-    lib_deps:
-      - adafruit/Adafruit BusIO
-      - adafruit/Adafruit GFX Library # Required for Clockface compatibility
     lib_ldf_mode: chain+
     build_flags:
       - -Os # Optimize for size

@@ -2,7 +2,7 @@
 
 #include <Arduino.h>
 
-#include <gfxfont.h>
+#include "vendored_gfx/gfxfont.h"
 
 
 
