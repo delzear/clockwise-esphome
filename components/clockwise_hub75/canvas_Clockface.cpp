@@ -314,6 +314,8 @@ bool Clockface::deserializeDefinition()
     url = "http://" + _server + "/" + _file + ".json";
   }
 
+  ESP_LOGCONFIG("URL", url.c_str());
+
   esp_http_client_config_t config = {};
   config.url = url.c_str();
   config.timeout_ms = 10000;
