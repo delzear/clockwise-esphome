@@ -340,14 +340,7 @@ bool Clockface::deserializeDefinition()
 
     ESP_LOGCONFIG("URL", "Failed URL: %s", url.c_str());\
     ESP_LOGCONFIG("HTTP_STATUS_CODE", "Status Code: %d", status_code);
-    
-    // Fetch and log the error message if available
-    char err_buf[256];
-    esp_err_t msg_err = esp_http_client_get_error(client, err_buf, sizeof(err_buf));
-    if (msg_err == ESP_OK) {
-      ESP_LOGCONFIG("HTTP_ERROR", "Error Message: %s", err_buf);
-    }
-    
+   
     drawSplashScreen(0xC904, "HTTP Error");
     return false;
   }
