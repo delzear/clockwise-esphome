@@ -339,7 +339,7 @@ bool Clockface::deserializeDefinition()
     esp_http_client_cleanup(client);
 
     ESP_LOGCONFIG("URL", url.c_str());
-    ESP_LOGCONFIG("URL", "d%", content_length);
+    ESP_LOGCONFIG("URL", "%d", content_length);
 
     drawSplashScreen(0xC904, "HTTP Error");
     return false;
