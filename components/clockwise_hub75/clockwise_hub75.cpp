@@ -44,7 +44,6 @@ static IClockface *create_clockface_(ClockfaceType type, GFXWrapper *gfx, const 
     case MARIO:
       return new mario::Clockface(gfx);
     case CANVAS:
-      ESP_LOGD(TAG, file.c_str());
       return new canvas::Clockface(gfx, server, file);
     default:
       return nullptr;

@@ -311,10 +311,8 @@ bool Clockface::deserializeDefinition()
   } else if (_server.rfind("http://", 0) == 0 || _server.rfind("https://", 0) == 0) {
     url = _server + "/" + _file + ".json";
   } else {
-    url = "http://" + _server + ":4443/" + _file + ".json";
+    url = "https://" + _server + ":4443/" + _file + ".json";
   }
-  Serial.println(url.c_str());
-  ESP_LOGCONFIG("URL", url.c_str());
 
   esp_http_client_config_t config = {};
   config.url = url.c_str();
