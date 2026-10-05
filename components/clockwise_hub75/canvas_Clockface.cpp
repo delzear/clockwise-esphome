@@ -313,6 +313,7 @@ bool Clockface::deserializeDefinition()
   } else {
     url = "http://" + _server + ":4443/" + _file + ".json";
   }
+  Serial.println(url.c_str());
 
   esp_http_client_config_t config = {};
   config.url = url.c_str();
