@@ -314,8 +314,6 @@ bool Clockface::deserializeDefinition()
     url = "http://" + _server + "/" + _file + ".json";
   }
 
-  ESP_LOGCONFIG("URL", url.c_str());
-
   esp_http_client_config_t config = {};
   config.url = url.c_str();
   config.timeout_ms = 10000;
@@ -339,6 +337,10 @@ bool Clockface::deserializeDefinition()
   if (status_code != 200) {
     esp_http_client_close(client);
     esp_http_client_cleanup(client);
+
+    ESP_LOGCONFIG("URL", url.c_str());
+    ESP_LOGCONFIG("URL", content_length);
+
     drawSplashScreen(0xC904, "HTTP Error");
     return false;
   }
