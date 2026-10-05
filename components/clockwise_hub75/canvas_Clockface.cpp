@@ -307,11 +307,11 @@ bool Clockface::deserializeDefinition()
 
   std::string url;
   if (_server.rfind("raw.", 0) == 0) {
-    url = "https://" + _server + "/jnthas/clock-club/main/shared/" + _file + ".json";
+    url = "http://" + _server + "/jnthas/clock-club/main/shared/" + _file + ".json";
   } else if (_server.rfind("http://", 0) == 0 || _server.rfind("https://", 0) == 0) {
     url = _server + "/" + _file + ".json";
   } else {
-    url = "https://" + _server + ":4443/" + _file + ".json";
+    url = "http://" + _server + "/" + _file + ".json";
   }
 
   esp_http_client_config_t config = {};
