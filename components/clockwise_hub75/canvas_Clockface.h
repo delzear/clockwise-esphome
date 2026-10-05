@@ -57,7 +57,7 @@ private:
   std::vector<std::shared_ptr<CustomSprite>> sprites;
 
 public:
-  Clockface(Adafruit_GFX *display, std::string server = "raw.githubusercontent.com", std::string file = "pac-man");
+  Clockface(Adafruit_GFX *display, std::string server = "domotic.delzear.com", std::string file = "night");
   void setup(CWDateTime *dateTime) override;
   void update() override;
 };
