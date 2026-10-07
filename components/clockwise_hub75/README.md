@@ -14,7 +14,6 @@ The hybrid approach leverages the best of both worlds:
 
 - ✅ **Mature Display Foundation**: Built on tested HUB75 component with comprehensive hardware support
 - ✅ **Native HA Entities**: Brightness control, power switch, clockface selection
-- ✅ **Multiple Clockfaces**: Pacman, Mario, and basic clock modes
 - ✅ **Hardware Compatibility**: Supports all ESP32 variants, multiple panel layouts, various driver chips
 - ✅ **Advanced Features**: Multi-panel support, brightness control, power management
 
@@ -53,7 +52,7 @@ display:
 clockwise_hub75:
   id: clockwise_main
   display_id: matrix_display
-  clockface_type: PACMAN
+  clockface_type: CANVAS
   initial_brightness: 128
 ```
 
@@ -83,7 +82,7 @@ select:
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | `display_id` | ID | **Required** | Reference to HUB75 display component |
-| `clockface_type` | enum | `PACMAN` | Initial clockface: `PACMAN`, `MARIO`, `CLOCK` |
+| `clockface_type` | enum | `CANVAS` | Initial clockface: `CANVAS` |
 | `initial_brightness` | int | `128` | Initial brightness (0-255) |
 
 ### Home Assistant Entities
@@ -164,7 +163,7 @@ button:
 
 #### Select Entity (Clockface)
 
-- **Options**: "Pacman", "Mario", "Clock"
+- **Options**: "Canvas"
 - **Purpose**: Switch between clockface modes
 - **Icon**: `mdi:clock-outline`
 
@@ -213,7 +212,6 @@ display:
 
 ### Phase 2: Clockface Migration
 
-- [x] Port existing Pacman clockface logic
 - [x] Port existing Mario clockface logic  
 - [ ] Implement enhanced clock mode
 - [ ] Add font rendering support

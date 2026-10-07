@@ -185,7 +185,7 @@ display:
 clockwise_hub75:
   id: clockwise_main
   hub75_id: matrix_display
-  clockface_type: CANVAS # Options: PACMAN, MARIO
+  clockface_type: CANVAS # Options: 
   initial_brightness: ${initial_brightness}
 
 # Home Assistant Entities
@@ -245,9 +245,8 @@ select:
     icon: mdi:clock-outline
     entity_category: config
     options:
-      - "Pacman"
-      - "Mario"
-    initial_option: "Pacman"
+      - "Canvas"
+    initial_option: "Canvas"
     restore_value: true
     optimistic: true
     on_value:
@@ -258,8 +257,7 @@ select:
               if (x == "Mario") return 1;
               return 0;
         - lambda: |-
-            if (x == "Mario") id(clockwise_main).switch_clockface(esphome::clockwise_hub75::MARIO);
-            else id(clockwise_main).switch_clockface(esphome::clockwise_hub75::PACMAN);
+            id(clockwise_main).switch_clockface(esphome::clockwise_hub75::CANVAS);
 
   - platform: template
     id: time_source_selector

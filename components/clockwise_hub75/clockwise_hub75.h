@@ -71,7 +71,7 @@ class ClockwiseHUB75 : public PollingComponent {
   IClockface *clockface_{nullptr};
   GFXWrapper *gfx_wrapper_{nullptr};
   
-  ClockfaceType clockface_type_{PACMAN};
+  ClockfaceType clockface_type_{CANVAS};
   PanelColorOrder panel_color_order_{RGB};
   uint8_t initial_brightness_{128};
   uint8_t current_brightness_{128};

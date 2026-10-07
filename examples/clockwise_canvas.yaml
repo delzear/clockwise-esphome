@@ -189,16 +189,8 @@ select:
     optimistic: true
     on_value:
       then:
-        - globals.set:
-            id: saved_clockface
-            value: !lambda |-
-              if (x == "Mario") return 1;
-              if (x == "Canvas") return 2;
-              return 0;
         - lambda: |-
-            if (x == "Mario") id(clockwise_main).switch_clockface(esphome::clockwise_hub75::MARIO);
-            else if (x == "Canvas") id(clockwise_main).switch_clockface(esphome::clockwise_hub75::CANVAS);
-            else id(clockwise_main).switch_clockface(esphome::clockwise_hub75::PACMAN);
+            id(clockwise_main).switch_clockface(esphome::clockwise_hub75::CANVAS);
 
   - platform: template
     id: time_source_selector

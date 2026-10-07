@@ -48,7 +48,7 @@ CONF_HUB75_ID = "hub75_id"
 CONFIG_SCHEMA = cv.Schema({
     cv.GenerateID(): cv.declare_id(ClockwiseHUB75),
     cv.Required(CONF_HUB75_ID): cv.use_id(HUB75Display),
-    cv.Optional(CONF_CLOCKFACE_TYPE, default="PACMAN"): cv.enum(CLOCKFACE_TYPES, upper=True),
+    cv.Optional(CONF_CLOCKFACE_TYPE, default="CANVAS"): cv.enum(CLOCKFACE_TYPES, upper=True),
     cv.Optional(CONF_PANEL_COLOR_ORDER, default="RGB"): cv.enum(PANEL_COLOR_ORDERS, upper=True),
     cv.Optional(CONF_INITIAL_BRIGHTNESS, default=128): cv.int_range(min=0, max=255),
     cv.Optional(CONF_CANVAS_SERVER, default="raw.githubusercontent.com"): cv.string,

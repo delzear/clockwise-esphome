@@ -46,7 +46,7 @@ void ClockwiseHUB75::set_panel_color_order(PanelColorOrder order) {
     gfx_wrapper_->set_color_order(static_cast<GFXWrapper::ColorChannelOrder>(order));
   }
 
-  // Force full redraw for clockfaces that keep static pixels on screen (e.g. Pacman/Mario/Canvas).
+  // Force full redraw for clockfaces that keep static pixels on screen (e.g. Canvas).
   if (clockface_ != nullptr && gfx_wrapper_ != nullptr) {
     switch_clockface(clockface_type_, true);
   }
