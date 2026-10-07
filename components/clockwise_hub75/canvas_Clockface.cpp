@@ -328,7 +328,8 @@ bool Clockface::deserializeDefinition()
 
   esp_err_t err = esp_http_client_open(client, 0);
   if (err != ESP_OK) {
-    ESP_LOGCONFIG("Clockface", "Error code: %s", err.c_str());
+    ESP_LOGCONFIG("Clockface", "Error code: %d", err);
+    ESP_LOGCONFIG("Clockface", "Failed URL: %s", url.c_str());
     esp_http_client_cleanup(client);
     drawSplashScreen(0xC904, "Connect failed");
     return false;
@@ -340,8 +341,8 @@ bool Clockface::deserializeDefinition()
     esp_http_client_close(client);
     esp_http_client_cleanup(client);
 
-    ESP_LOGCONFIG("URL", "Failed URL: %s", url.c_str());\
-    ESP_LOGCONFIG("HTTP_STATUS_CODE", "Status Code: %d", status_code);
+    ESP_LOGCONFIG("Clockface", "Failed URL: %s", url.c_str());\
+    ESP_LOGCONFIG("Clockface", "Status Code: %d", status_code);
    
     drawSplashScreen(0xC904, "HTTP Error");
     return false;
