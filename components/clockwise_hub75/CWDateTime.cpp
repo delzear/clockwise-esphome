@@ -101,7 +101,6 @@ String CWDateTime::getFormattedTime() {
 
 String CWDateTime::getFormattedTime(const char *format) {
   return String(format_ez_time(rtc_->now(), format).c_str());
-  //return getFormattedTime();
 }
 
 int CWDateTime::getHour() {

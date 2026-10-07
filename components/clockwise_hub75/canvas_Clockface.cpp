@@ -107,7 +107,6 @@ void Clockface::refreshDateTime()
     if (strcmp(type, "datetime") == 0)
     {
       renderText(_dateTime->getFormattedTime(value["content"].as<const char *>()), value);
-      ESP_LOGCONFIG("DATETIME", "Content: %s", value["content"].as<const char *>());
     }
   }
 }
