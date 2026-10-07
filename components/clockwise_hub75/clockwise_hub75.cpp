@@ -24,9 +24,9 @@ void ClockwiseHUB75::set_time_source(int source) {
   } else if (source == 1 && ntp_time_ != nullptr) {
     ESP_LOGI(TAG, "Switching to NTP time");
     set_time(ntp_time_);
-  } else if (source == 2 && rtc_time_ != nullptr) {
-    ESP_LOGI(TAG, "Switching to RTC time");
-    set_time(rtc_time_);
+  // } else if (source == 2 && rtc_time_ != nullptr) {
+  //   ESP_LOGI(TAG, "Switching to RTC time");
+  //   set_time(rtc_time_);
   }
   
   if (time_ != nullptr) {
