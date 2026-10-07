@@ -325,6 +325,7 @@ bool Clockface::deserializeDefinition()
 
   esp_err_t err = esp_http_client_open(client, 0);
   if (err != ESP_OK) {
+    ESP_LOGCONFIG("Clockface", "Error opening HTTP connection: %s", esp_err_to_name(err));
     ESP_LOGCONFIG("Clockface", "Error code: %d", err);
 
     esp_http_client_cleanup(client);
