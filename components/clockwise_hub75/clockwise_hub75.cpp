@@ -16,7 +16,7 @@ static const char *const TAG = "clockwise_hub75";
 void ClockwiseHUB75::set_time_source(int source) {
   // 0 = Home Assistant, 1 = NTP (SNTP), 2 = RTC
   time_source_ = source;
-  ESP_LOGD(TAG, "set_time_source: source=%d ha=%p ntp=%p rtc=%p", source, ha_time_, ntp_time_, rtc_time_);
+  //ESP_LOGD(TAG, "set_time_source: source=%d ha=%p ntp=%p rtc=%p", source, ha_time_, ntp_time_, rtc_time_);
 
   if (source == 0 && ha_time_ != nullptr) {
     ESP_LOGI(TAG, "Switching to Home Assistant time");
@@ -24,9 +24,9 @@ void ClockwiseHUB75::set_time_source(int source) {
   } else if (source == 1 && ntp_time_ != nullptr) {
     ESP_LOGI(TAG, "Switching to NTP time");
     set_time(ntp_time_);
-  // } else if (source == 2 && rtc_time_ != nullptr) {
-  //   ESP_LOGI(TAG, "Switching to RTC time");
-  //   set_time(rtc_time_);
+  } else if (source == 2 && rtc_time_ != nullptr) {
+     ESP_LOGI(TAG, "Switching to RTC time");
+     set_time(rtc_time_);
   }
   
   if (time_ != nullptr) {
