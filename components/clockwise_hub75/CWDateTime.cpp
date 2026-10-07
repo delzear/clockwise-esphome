@@ -100,6 +100,8 @@ String CWDateTime::getFormattedTime() {
 }
 
 String CWDateTime::getFormattedTime(const char *format) {
+  if (!rtc_) return "00:00:00";
+  
   return String(format_ez_time(rtc_->now(), format).c_str());
 }
 
