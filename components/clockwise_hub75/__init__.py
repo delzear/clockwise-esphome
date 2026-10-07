@@ -30,8 +30,6 @@ CONF_CANVAS_SERVER = "canvas_server"
 CONF_CANVAS_FILE = "canvas_file"
 
 CLOCKFACE_TYPES = {
-    "PACMAN": ClockfaceType.PACMAN,
-    "MARIO": ClockfaceType.MARIO,
     "CANVAS": ClockfaceType.CANVAS,
     "CLOCK": ClockfaceType.CLOCK,
 }

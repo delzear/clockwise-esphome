@@ -16,8 +16,6 @@ namespace esphome {
 namespace clockwise_hub75 {
 
 enum ClockfaceType {
-    PACMAN = 0,
-    MARIO = 1,
     CANVAS = 2,
     CLOCK = 3
 };

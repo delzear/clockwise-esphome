@@ -185,7 +185,7 @@ display:
 clockwise_hub75:
   id: clockwise_main
   hub75_id: matrix_display
-  clockface_type: MARIO # Options: PACMAN, MARIO
+  clockface_type: CANVAS # Options: PACMAN, MARIO
   initial_brightness: ${initial_brightness}
 
 # Home Assistant Entities

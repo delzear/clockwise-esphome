@@ -4,8 +4,6 @@
 #include "esphome/core/log.h"
 #include "Locator.h"
 #include "GFXWrapper.h"
-#include "pacman_Clockface.h"
-#include "mario_Clockface.h"
 #include "canvas_Clockface.h"
 
 ::CWDateTime g_dt;
@@ -38,16 +36,7 @@ void ClockwiseHUB75::set_time_source(int source) {
 }
 
 static IClockface *create_clockface_(ClockfaceType type, GFXWrapper *gfx, const std::string &server, const std::string &file) {
-  switch (type) {
-    case PACMAN:
-      return new pacman::Clockface(gfx);
-    case MARIO:
-      return new mario::Clockface(gfx);
-    case CANVAS:
-      return new canvas::Clockface(gfx, server, file);
-    default:
-      return nullptr;
-  }
+  return new canvas::Clockface(gfx, server, file);
 }
 
 void ClockwiseHUB75::set_panel_color_order(PanelColorOrder order) {
