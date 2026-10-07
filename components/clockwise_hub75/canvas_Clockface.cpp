@@ -306,14 +306,11 @@ bool Clockface::deserializeDefinition()
   }
 
   std::string url;
-  if (_server.rfind("raw.", 0) == 0) {
-    url = "http://" + _server + "/jnthas/clock-club/main/shared/" + _file + ".json";
-  } else if (_server.rfind("http://", 0) == 0 || _server.rfind("https://", 0) == 0) {
+  if (_server.rfind("http://", 0) == 0 || _server.rfind("https://", 0) == 0) {
     url = _server + "/" + _file + ".json";
   } else {
     url = "http://" + _server + "/" + _file + ".json";
   }
-  ESP_LOGCONFIG("Clockface", "File downloaded: %s", url);
 
   esp_http_client_config_t config = {};
   config.url = url.c_str();
