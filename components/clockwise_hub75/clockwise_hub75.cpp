@@ -152,6 +152,9 @@ void ClockwiseHUB75::switch_clockface(ClockfaceType type, bool force) {
   // Update the clockface type
   clockface_type_ = type;
 
+  ESP_LOGI(TAG, "Server: %s", canvas_server_.c_str());
+  ESP_LOGI(TAG, "File: %s", canvas_file_.c_str());
+
   clockface_ = create_clockface_(clockface_type_, gfx_wrapper_, canvas_server_, canvas_file_);
   if (clockface_ != nullptr) {
     clockface_->setup(&g_dt);
