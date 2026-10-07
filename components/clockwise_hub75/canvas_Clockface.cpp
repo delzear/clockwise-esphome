@@ -19,7 +19,6 @@ void Clockface::setup(CWDateTime *dateTime)
   if (deserializeDefinition()) {
     clockfaceSetup();
   }
-  ESP_LOGCONFIG("Clockface", "Downloading clockface definition from %s/%s.json", _server.c_str(), _file.c_str());
 }
 
 void Clockface::printCenter(const char *msg, int y) {
@@ -314,6 +313,7 @@ bool Clockface::deserializeDefinition()
   } else {
     url = "http://" + _server + "/" + _file + ".json";
   }
+  ESP_LOGCONFIG("Clockface", "File downloaded: %s", url);
 
   esp_http_client_config_t config = {};
   config.url = url.c_str();
@@ -328,6 +328,7 @@ bool Clockface::deserializeDefinition()
 
   esp_err_t err = esp_http_client_open(client, 0);
   if (err != ESP_OK) {
+    ESP_LOGCONFIG("Clockface", "Error code: %s", err.c_str());
     esp_http_client_cleanup(client);
     drawSplashScreen(0xC904, "Connect failed");
     return false;
