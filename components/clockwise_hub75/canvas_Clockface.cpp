@@ -15,7 +15,8 @@ void Clockface::setup(CWDateTime *dateTime)
 {
   this->_dateTime = dateTime;
   drawSplashScreen(0xFFE0, "Downloading");
-
+  ESP_LOGCONFIG("Clockface", "Downloading clockface definition from %s/%s.json", _server.c_str(), _file.c_str());
+  
   if (deserializeDefinition()) {
     clockfaceSetup();
   }
