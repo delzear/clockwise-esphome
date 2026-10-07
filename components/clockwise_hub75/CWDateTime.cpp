@@ -22,6 +22,72 @@ void CWDateTime::begin() {
   ESP_LOGI(TAG, "CWDateTime initialized. Waiting for RTC to be assigned via YAML.");
 }
 
+std::string format_ez_time(const esphome::ESPTime &tm, const std::string &format) {
+    if (!tm.is_valid()) return "";
+
+    std::string out = "";
+    bool escape_char = false;
+
+    auto is_leap = [](int y) { return (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0); };
+    auto zeropad = [](int num, int len) {
+        std::string s = std::to_string(num);
+        while (s.length() < len) s = "0" + s;
+        return s;
+    };
+
+    const char* monthDays[] = {"31","28","31","30","31","30","31","31","30","31","30","31"};
+    const char* dayShort[] = {"", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}; // ESPTime wday 1=Sun
+    const char* dayFull[] = {"", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+    const char* monthShort[] = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+    const char* monthFull[] = {"", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
+
+    int hour12 = tm.hour % 12;
+    if (hour12 == 0) hour12 = 12;
+
+    for (char c : format) {
+        if (escape_char) {
+            out += c;
+            escape_char = false;
+        } else {
+            switch (c) {
+                case '\\': case '~': escape_char = true; break;
+                case 'd': out += zeropad(tm.day_of_month, 2); break;
+                case 'D': out += dayShort[tm.day_of_week]; break; 
+                case 'j': out += std::to_string(tm.day_of_month); break;
+                case 'l': out += dayFull[tm.day_of_week]; break;
+                case 'N': out += std::to_string(tm.day_of_week == 1 ? 7 : tm.day_of_week - 1); break;
+                case 'S': {
+                    int d = tm.day_of_month;
+                    if (d == 1 || d == 21 || d == 31) out += "st";
+                    else if (d == 2 || d == 22) out += "nd";
+                    else if (d == 3 || d == 23) out += "rd";
+                    else out += "th";
+                    break;
+                }
+                case 'w': out += std::to_string(tm.day_of_week - 1); break;
+                case 'F': out += monthFull[tm.month]; break;
+                case 'm': out += zeropad(tm.month, 2); break;
+                case 'M': out += monthShort[tm.month]; break;
+                case 'n': out += std::to_string(tm.month); break;
+                case 't': out += (tm.month == 2 && is_leap(tm.year)) ? "29" : monthDays[tm.month - 1]; break;
+                case 'Y': out += std::to_string(tm.year); break;
+                case 'y': out += zeropad(tm.year % 100, 2); break;
+                case 'a': out += (tm.hour < 12) ? "am" : "pm"; break;
+                case 'A': out += (tm.hour < 12) ? "AM" : "PM"; break;
+                case 'g': out += std::to_string(hour12); break;
+                case 'G': out += std::to_string(tm.hour); break;
+                case 'h': out += zeropad(hour12, 2); break;
+                case 'H': out += zeropad(tm.hour, 2); break;
+                case 'i': out += zeropad(tm.minute, 2); break;
+                case 's': out += zeropad(tm.second, 2); break;
+                case 'z': out += std::to_string(tm.day_of_year - 1); break; 
+                default: out += c; break;
+            }
+        }
+    }
+    return out;
+}
+
 String CWDateTime::getFormattedTime() {
   if (!rtc_) return "00:00:00";
 
@@ -130,73 +196,6 @@ bool CWDateTime::isAM() {
 bool CWDateTime::is24hFormat() {
   return use24hFormat_;
 }
-
-std::string format_ez_time(const esphome::ESPTime &tm, const std::string &format) {
-    if (!tm.is_valid()) return "";
-
-    std::string out = "";
-    bool escape_char = false;
-
-    auto is_leap = [](int y) { return (y % 4 == 0 && y % 100 != 0) || (y % 400 == 0); };
-    auto zeropad = [](int num, int len) {
-        std::string s = std::to_string(num);
-        while (s.length() < len) s = "0" + s;
-        return s;
-    };
-
-    const char* monthDays[] = {"31","28","31","30","31","30","31","31","30","31","30","31"};
-    const char* dayShort[] = {"", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"}; // ESPTime wday 1=Sun
-    const char* dayFull[] = {"", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
-    const char* monthShort[] = {"", "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
-    const char* monthFull[] = {"", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"};
-
-    int hour12 = tm.hour % 12;
-    if (hour12 == 0) hour12 = 12;
-
-    for (char c : format) {
-        if (escape_char) {
-            out += c;
-            escape_char = false;
-        } else {
-            switch (c) {
-                case '\\': case '~': escape_char = true; break;
-                case 'd': out += zeropad(tm.day_of_month, 2); break;
-                case 'D': out += dayShort[tm.day_of_week]; break; 
-                case 'j': out += std::to_string(tm.day_of_month); break;
-                case 'l': out += dayFull[tm.day_of_week]; break;
-                case 'N': out += std::to_string(tm.day_of_week == 1 ? 7 : tm.day_of_week - 1); break;
-                case 'S': {
-                    int d = tm.day_of_month;
-                    if (d == 1 || d == 21 || d == 31) out += "st";
-                    else if (d == 2 || d == 22) out += "nd";
-                    else if (d == 3 || d == 23) out += "rd";
-                    else out += "th";
-                    break;
-                }
-                case 'w': out += std::to_string(tm.day_of_week - 1); break;
-                case 'F': out += monthFull[tm.month]; break;
-                case 'm': out += zeropad(tm.month, 2); break;
-                case 'M': out += monthShort[tm.month]; break;
-                case 'n': out += std::to_string(tm.month); break;
-                case 't': out += (tm.month == 2 && is_leap(tm.year)) ? "29" : monthDays[tm.month - 1]; break;
-                case 'Y': out += std::to_string(tm.year); break;
-                case 'y': out += zeropad(tm.year % 100, 2); break;
-                case 'a': out += (tm.hour < 12) ? "am" : "pm"; break;
-                case 'A': out += (tm.hour < 12) ? "AM" : "PM"; break;
-                case 'g': out += std::to_string(hour12); break;
-                case 'G': out += std::to_string(tm.hour); break;
-                case 'h': out += zeropad(hour12, 2); break;
-                case 'H': out += zeropad(tm.hour, 2); break;
-                case 'i': out += zeropad(tm.minute, 2); break;
-                case 's': out += zeropad(tm.second, 2); break;
-                case 'z': out += std::to_string(tm.day_of_year - 1); break; 
-                default: out += c; break;
-            }
-        }
-    }
-    return out;
-}
-
 
 
 
