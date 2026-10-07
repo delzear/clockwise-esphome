@@ -1,17 +1,17 @@
 #pragma once
-
-#include "esphome/components/time/real_time_clock.h"
 #include <Arduino.h>
 
-class CWDateTime {
+#include <ezTime.h>
+#include <WiFi.h>
+
+class CWDateTime
+{
 private:
-  esphome::time::RealTimeClock *rtc_ = nullptr;
-  bool use24hFormat_ = true;
+  Timezone myTZ;
+  bool use24hFormat = true;
 
 public:
-  void begin();
-  void set_rtc(esphome::time::RealTimeClock *rtc);
-  
+  void begin(const char *timeZone, bool use24format, const char *ntpServer, const char *posixTZ);
   String getFormattedTime();
   String getFormattedTime(const char* format);
 

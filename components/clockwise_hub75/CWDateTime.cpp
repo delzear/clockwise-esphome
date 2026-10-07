@@ -1,147 +1,125 @@
 #include "CWDateTime.h"
-#include "esphome/core/application.h"
-#include "esphome/components/time/real_time_clock.h"
-#include "esphome/core/log.h"
+#include "CWPreferences.h"
 
-using namespace esphome;
-using namespace esphome::time;
+void CWDateTime::begin(const char *timeZone, bool use24format, const char *ntpServer = NTP_SERVER, const char *posixTZ = "")
+{
+  Serial.printf("[Time] NTP Server: %s, Timezone: %s\n", ntpServer, timeZone);
+  ezt::setServer(String(ntpServer));
 
-static const char *const TAG = "CWDateTime";
-
-void CWDateTime::set_rtc(esphome::time::RealTimeClock *rtc) {
-  rtc_ = rtc;
-  if (rtc_) {
-    ESP_LOGI(TAG, "RTC pointer linked: %p (source determined by selector)", rtc_);
+  if (strlen(posixTZ) > 1) {
+    // An empty value still contains a null character so not empty is a value greater than 1.
+    // Set to defined Posix TZ
+    Serial.printf("[Time] Using manual user POSIX TZ: %s\n", posixTZ);
+    myTZ.setPosix(posixTZ);
   } else {
-    ESP_LOGW(TAG, "RTC pointer cleared or invalid!");
+    ClockwiseParams *params = ClockwiseParams::getInstance();
+    bool hasValidCache = (params->cachedTz == timeZone && params->cachedPosix.length() > 0);
+
+    // 1. Immediately apply cached POSIX string if available (Zero-latency boot)
+    if (hasValidCache) {
+      Serial.printf("[Time] Applying cached POSIX TZ for %s: %s\n", timeZone, params->cachedPosix.c_str());
+      myTZ.setPosix(params->cachedPosix.c_str());
+    }
+
+    // 2. Attempt remote lookup with retries
+    bool success = false;
+    for (int attempt = 1; attempt <= 3; attempt++) {
+      if (myTZ.setLocation(timeZone)) {
+        success = true;
+        break;
+      }
+      Serial.printf("[Time] Timezone lookup attempt %d failed, retrying...\n", attempt);
+      delay(500);
+    }
+
+    // 3. If remote lookup succeeded, save/update cache in NVS
+    if (success) {
+      String resolved = myTZ.getPosix();
+      Serial.printf("[Time] Resolved POSIX: %s -> %s\n", timeZone, resolved.c_str());
+      if (resolved.length() > 0 && (params->cachedTz != timeZone || params->cachedPosix != resolved)) {
+        params->cachedTz = String(timeZone);
+        params->cachedPosix = resolved;
+        params->save();
+        Serial.println("[Time] Saved resolved POSIX to NVS cache.");
+      }
+    } else {
+      if (hasValidCache) {
+        myTZ.setPosix(params->cachedPosix.c_str());
+        Serial.println("[Time] Remote lookup failed, but cached POSIX is active. Local time is preserved!");
+      } else {
+        Serial.println("[Time] WARNING: Timezone lookup failed and no cache available! Running in UTC.");
+      }
+    }
   }
+
+  this->use24hFormat = use24format;
+  ezt::updateNTP();
+  waitForSync(10);
 }
 
-void CWDateTime::begin() {
-  ESP_LOGI(TAG, "CWDateTime initialized. Waiting for RTC to be assigned via YAML.");
+String CWDateTime::getFormattedTime()
+{
+  return myTZ.dateTime();
 }
 
-String CWDateTime::getFormattedTime() {
-  if (!rtc_) return "00:00:00";
-
-  esphome::ESPTime t = rtc_->now();
-  if (!t.is_valid()) return "00:00:00";
-
-  char buf[16];
-  snprintf(buf, sizeof(buf), "%02d:%02d:%02d", t.hour, t.minute, t.second);
-  return String(buf);
+String CWDateTime::getFormattedTime(const char *format)
+{
+  return myTZ.dateTime(format);
 }
 
-String CWDateTime::getFormattedTime(const char* /*format*/) {
-  // For now, ignore the format string
-  return getFormattedTime();
+char *CWDateTime::getHour(const char *format)
+{
+  static char buffer[3] = {'\0'};
+  strncpy(buffer, myTZ.dateTime((use24hFormat ? "H" : "h")).c_str(), sizeof(buffer));
+  return buffer;
 }
 
-int CWDateTime::getHour() {
-  if (!rtc_) return 0;
-  esphome::ESPTime t = rtc_->now();
-  return t.is_valid() ? t.hour : 0;
+char *CWDateTime::getMinute(const char *format)
+{
+  static char buffer[3] = {'\0'};
+  strncpy(buffer, myTZ.dateTime("i").c_str(), sizeof(buffer));
+  return buffer;
 }
 
-int CWDateTime::getMinute() {
-  if (!rtc_) return 0;
-  esphome::ESPTime t = rtc_->now();
-  return t.is_valid() ? t.minute : 0;
+int CWDateTime::getHour()
+{
+  return myTZ.dateTime((use24hFormat ? "H" : "h")).toInt();
 }
 
-int CWDateTime::getSecond() {
-  if (!rtc_) return 0;
-  esphome::ESPTime t = rtc_->now();
-  return t.is_valid() ? t.second : 0;
+int CWDateTime::getMinute()
+{
+  return myTZ.dateTime("i").toInt();
 }
 
-int CWDateTime::getDay() {
-  if (!rtc_) return 1;
-  esphome::ESPTime t = rtc_->now();
-  return t.is_valid() ? t.day_of_month : 1;
+int CWDateTime::getSecond()
+{
+  return myTZ.dateTime("s").toInt();
 }
 
-int CWDateTime::getMonth() {
-  if (!rtc_) return 1;
-  esphome::ESPTime t = rtc_->now();
-  return t.is_valid() ? t.month : 1;
+int CWDateTime::getDay() 
+{
+  return myTZ.dateTime("d").toInt();
 }
-
-int CWDateTime::getWeekday() {
-  if (!rtc_) return 1;
-  esphome::ESPTime t = rtc_->now();
-  if (!t.is_valid()) return 1;
-
-  // Compute weekday (1=Monday..7=Sunday)
-  int q = t.day_of_month;
-  int m = t.month < 3 ? t.month + 12 : t.month;
-  int K = (t.year % 100) - (t.month < 3 ? 1 : 0);
-  int J = (t.year / 100);
-  int h = (q + 13*(m+1)/5 + K + K/4 + J/4 + 5*J) % 7;
-  int d = ((h + 5) % 7) + 1;
-  return d;
+int CWDateTime::getMonth()
+{
+  return myTZ.dateTime("m").toInt();
+}
+int CWDateTime::getWeekday() 
+{
+  return myTZ.dateTime("w").toInt()-1;
 }
 
 long CWDateTime::getMilliseconds() 
 {
-  return 0;
+  return myTZ.ms(TIME_NOW);
 }
 
-char *CWDateTime::getHour(const char *format) {
-  static char buffer[3] = {'\0'};
-  if (!rtc_) { strncpy(buffer, "00", sizeof(buffer)); return buffer; }
-
-  esphome::ESPTime t = rtc_->now();
-  if (!t.is_valid()) { strncpy(buffer, "00", sizeof(buffer)); return buffer; }
-
-  int hour = t.hour;
-  if (!use24hFormat_) {
-    // convert 0..23 -> 12-hour 1..12
-    hour = hour % 12;
-    if (hour == 0) hour = 12;
-  }
-  snprintf(buffer, sizeof(buffer), "%02d", hour);
-  return buffer;
+bool CWDateTime::isAM() 
+{
+  return myTZ.isAM();
 }
 
-char *CWDateTime::getMinute(const char *format) {
-  static char buffer[3] = {'\0'};
-  if (!rtc_) { strncpy(buffer, "00", sizeof(buffer)); return buffer; }
-
-  esphome::ESPTime t = rtc_->now();
-  if (!t.is_valid()) { strncpy(buffer, "00", sizeof(buffer)); return buffer; }
-
-  int minute = t.minute;
-  bool nozero = (format && strstr(format, "nozero") != nullptr);
-  if (nozero) {
-    snprintf(buffer, sizeof(buffer), "%d", minute);
-  } else {
-    snprintf(buffer, sizeof(buffer), "%02d", minute);
-  }
-  return buffer;
+bool CWDateTime::is24hFormat() 
+{
+  return this->use24hFormat;
 }
-
-bool CWDateTime::isAM() {
-  return getHour() < 12;
-}
-
-bool CWDateTime::is24hFormat() {
-  return use24hFormat_;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
