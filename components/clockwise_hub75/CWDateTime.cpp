@@ -22,7 +22,7 @@ void CWDateTime::begin() {
   ESP_LOGI(TAG, "CWDateTime initialized. Waiting for RTC to be assigned via YAML.");
 }
 
-std::string format_ez_time(const esphome::ESPTime &tm, const std::string &format) {
+std::string CWDateTime::format_ez_time(const esphome::ESPTime &tm, const std::string &format) {
     if (!tm.is_valid()) return "";
 
     std::string out = "";
@@ -100,7 +100,6 @@ String CWDateTime::getFormattedTime() {
 }
 
 String CWDateTime::getFormattedTime(const char *format) {
-  
   return format_ez_time(rtc_->now(), format);
   //return getFormattedTime();
 }
