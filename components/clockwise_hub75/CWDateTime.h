@@ -7,6 +7,7 @@ class CWDateTime {
 private:
   esphome::time::RealTimeClock *rtc_ = nullptr;
   bool use24hFormat_ = true;
+  String format_ez_time(const esphome::ESPTime &tm, const std::string &format);
 
 public:
   void begin();
