@@ -106,12 +106,16 @@ void Clockface::renderText(String text, JsonVariantConst value)
 
   Locator::getDisplay()->getTextBounds(text, 0, 0, &x1, &y1, &w, &h);
 
+  // If the JSON provides an explicit bounding area width/height, use it so we fully erase old longer strings
+  uint16_t bg_w = value.containsKey("width") ? value["width"].as<const uint16_t>() : w + max((int16_t)0, x1);
+  uint16_t bg_h = value.containsKey("height") ? value["height"].as<const uint16_t>() : h + max((int16_t)0, y1);
+
   // BG Color
   Locator::getDisplay()->fillRect(
-      value["x"].as<const uint16_t>() + x1,
-      value["y"].as<const uint16_t>() + y1,
-      w,
-      h,
+      value["x"].as<const uint16_t>(),
+      value["y"].as<const uint16_t>() + min((int16_t)0, y1),
+      bg_w,
+      bg_h,
       value["bgColor"].as<const uint16_t>());
 
   Locator::getDisplay()->setTextColor(value["fgColor"].as<const uint16_t>());
