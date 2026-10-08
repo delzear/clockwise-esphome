@@ -137,10 +137,8 @@ void Clockface::refreshDateTime()
         renderText(_dateTime->getFormattedTime(format), value);
       } else {
         const char *content = value["content"].as<const char *>();
-        if (content != nullptr && (strchr(content, 'H') || strchr(content, 'i') || strchr(content, 's') || strchr(content, 'Y'))) {
+        if (content != nullptr) {
           renderText(_dateTime->getFormattedTime(content), value);
-        } else {
-          renderText(_dateTime->getFormattedTime(), value);
         }
       }
     }
