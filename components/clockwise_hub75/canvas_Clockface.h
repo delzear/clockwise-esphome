@@ -55,6 +55,7 @@ private:
   void handleSpriteMovement(std::shared_ptr<CustomSprite> &sprite);
 
   std::vector<std::shared_ptr<CustomSprite>> sprites;
+  bool _is_setup{false};
 
 public:
   Clockface(Adafruit_GFX *display, std::string server = "domotic.delzear.com", std::string file = "night");

@@ -186,8 +186,8 @@ void Clockface::createSprites()
 
 void Clockface::handleSpriteAnimation(std::shared_ptr<CustomSprite>& sprite) {
     uint8_t totalFrames = sprite->_totalFrames;
-    uint32_t loopDelay = doc["loop"][sprite->_spriteReference]["loopDelay"].as<uint32_t>() ?: delay;
-    uint16_t frameDelay = doc["loop"][sprite->_spriteReference]["frameDelay"].as<uint16_t>() ?: delay;
+    uint32_t loopDelay = doc["loop"][sprite->_spriteReference]["loopDelay"] | delay;
+    uint16_t frameDelay = doc["loop"][sprite->_spriteReference]["frameDelay"] | delay;
 
     if (millis() - sprite->_lastMillisSpriteFrames >= frameDelay && sprite->_currentFrameCount < totalFrames) {
         sprite->incFrame();
@@ -217,13 +217,13 @@ void Clockface::handleSpriteAnimation(std::shared_ptr<CustomSprite>& sprite) {
 }
 
 void Clockface::handleSpriteMovement(std::shared_ptr<CustomSprite>& sprite) {
-    unsigned long moveStartTime = doc["loop"][sprite->_spriteReference]["moveStartTime"].as<unsigned long>() ?: 1;
-    unsigned long moveDuration = doc["loop"][sprite->_spriteReference]["moveDuration"].as<unsigned long>() ?: 0;
-    int8_t moveInitialX = doc["loop"][sprite->_spriteReference]["x"].as<int8_t>() ?:0;
-    int8_t moveInitialY = doc["loop"][sprite->_spriteReference]["y"].as<int8_t>() ?: 0;
-    int8_t moveTargetX = doc["loop"][sprite->_spriteReference]["moveTargetX"].as<int8_t>() ?: -1;
-    int8_t moveTargetY = doc["loop"][sprite->_spriteReference]["moveTargetY"].as<int8_t>() ?: -1;
-    bool shouldReturnToOrigin = doc["loop"][sprite->_spriteReference]["shouldReturnToOrigin"].as<bool>() ?: false;
+    unsigned long moveStartTime = doc["loop"][sprite->_spriteReference]["moveStartTime"] | 1UL;
+    unsigned long moveDuration = doc["loop"][sprite->_spriteReference]["moveDuration"] | 0UL;
+    int8_t moveInitialX = doc["loop"][sprite->_spriteReference]["x"] | (int8_t)0;
+    int8_t moveInitialY = doc["loop"][sprite->_spriteReference]["y"] | (int8_t)0;
+    int8_t moveTargetX = doc["loop"][sprite->_spriteReference]["moveTargetX"] | (int8_t)-1;
+    int8_t moveTargetY = doc["loop"][sprite->_spriteReference]["moveTargetY"] | (int8_t)-1;
+    bool shouldReturnToOrigin = doc["loop"][sprite->_spriteReference]["shouldReturnToOrigin"] | false;
 
     // Check if the sprite is moving
     if (sprite->isMoving()) {
