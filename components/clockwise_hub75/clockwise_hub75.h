@@ -38,9 +38,9 @@ class ClockwiseHUB75 : public PollingComponent {
 
   // Configuration
   void set_hub75_display(esphome::hub75::HUB75Display *display) { hub75_display_ = display; }
-  void set_ha_time(time::RealTimeClock *t) { ha_time_ = t; }
-  void set_ntp_time(time::RealTimeClock *t) { ntp_time_ = t; }
-  void set_rtc_time(time::RealTimeClock *t) { rtc_time_ = t; }
+  void set_ha_time(time::RealTimeClock *t) { ha_time_ = t; if (time_source_ == 0) set_time_source(0); }
+  void set_ntp_time(time::RealTimeClock *t) { ntp_time_ = t; if (time_source_ == 1) set_time_source(1); }
+  void set_rtc_time(time::RealTimeClock *t) { rtc_time_ = t; if (time_source_ == 2) set_time_source(2); }
   void set_time_source(int source);
   void set_clockface_type(ClockfaceType type) { clockface_type_ = type; }
   void set_initial_brightness(uint8_t brightness) { initial_brightness_ = brightness; }
