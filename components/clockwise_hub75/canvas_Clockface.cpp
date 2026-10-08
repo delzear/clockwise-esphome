@@ -128,9 +128,16 @@ void Clockface::refreshDateTime()
 
     if (type != nullptr && strcmp(type, "datetime") == 0)
     {
-      const char *content = value["content"].as<const char *>();
-      if (content != nullptr) {
-        renderText(_dateTime->getFormattedTime(content), value);
+      const char *format = value["format"].as<const char *>();
+      if (format != nullptr && strlen(format) > 0) {
+        renderText(_dateTime->getFormattedTime(format), value);
+      } else {
+        const char *content = value["content"].as<const char *>();
+        if (content != nullptr && (strchr(content, 'H') || strchr(content, 'i') || strchr(content, 's') || strchr(content, 'Y'))) {
+          renderText(_dateTime->getFormattedTime(content), value);
+        } else {
+          renderText(_dateTime->getFormattedTime(), value);
+        }
       }
     }
   }
