@@ -55,7 +55,11 @@ void Clockface::update()
 
 void Clockface::setFont(const char *fontName)
 {
-  if (strcmp(fontName, "picopixel") == 0)
+  if (fontName == nullptr)
+  {
+    Locator::getDisplay()->setFont();
+  }
+  else if (strcmp(fontName, "picopixel") == 0)
   {
     Locator::getDisplay()->setFont(&Picopixel);
   }
@@ -82,7 +86,8 @@ void Clockface::renderText(String text, JsonVariantConst value)
   int16_t x1, y1;
   uint16_t w, h;
 
-  setFont(value["font"].as<const char *>());
+  const char* fontName = value["font"].as<const char *>();
+  setFont(fontName);
 
   Locator::getDisplay()->getTextBounds(text, 0, 0, &x1, &y1, &w, &h);
 
@@ -106,9 +111,12 @@ void Clockface::refreshDateTime()
   {
     const char *type = value["type"].as<const char *>();
 
-    if (strcmp(type, "datetime") == 0)
+    if (type != nullptr && strcmp(type, "datetime") == 0)
     {
-      renderText(_dateTime->getFormattedTime(value["content"].as<const char *>()), value);
+      const char *content = value["content"].as<const char *>();
+      if (content != nullptr) {
+        renderText(_dateTime->getFormattedTime(content), value);
+      }
     }
   }
 }
@@ -140,13 +148,18 @@ void Clockface::createSprites()
   {
     const char *type = value["type"].as<const char *>();
 
-    if (strcmp(type, "sprite") == 0)
+    if (type != nullptr && strcmp(type, "sprite") == 0)
     {
       uint8_t ref = value["sprite"].as<const uint8_t>();
 
       std::shared_ptr<CustomSprite> s = std::make_shared<CustomSprite>(value["x"].as<const int8_t>(), value["y"].as<const int8_t>());
 
-      getImageDimensions(doc["sprites"][ref][0]["image"].as<const char *>(), width, height);
+      const char* image_b64 = doc["sprites"][ref][0]["image"].as<const char *>();
+      if (image_b64 != nullptr) {
+        getImageDimensions(image_b64, width, height);
+      } else {
+        width = 0; height = 0;
+      }
 
       s.get()->_spriteReference = value["sprite"].as<const uint8_t>();
       s.get()->_totalFrames = doc["sprites"][ref].size();
@@ -168,7 +181,10 @@ void Clockface::handleSpriteAnimation(std::shared_ptr<CustomSprite>& sprite) {
         handleSpriteMovement(sprite);
 
         // Render the frame of the sprite
-        renderImage(doc["sprites"][sprite->_spriteReference][sprite->_currentFrame]["image"].as<const char *>(), sprite->getX(), sprite->getY());
+        const char *img = doc["sprites"][sprite->_spriteReference][sprite->_currentFrame]["image"].as<const char *>();
+        if (img != nullptr) {
+            renderImage(img, sprite->getX(), sprite->getY());
+        }
 
         sprite->_currentFrameCount += 1;
         sprite->_lastMillisSpriteFrames = millis();
@@ -261,10 +277,14 @@ void Clockface::renderElements(JsonArrayConst elements)
   for (JsonVariantConst value : elements)
   {
     const char *type = value["type"].as<const char *>();
+    if (type == nullptr) continue;
 
     if (strcmp(type, "text") == 0)
     {
-      renderText(value["content"].as<const char *>(), value);
+      const char *content = value["content"].as<const char *>();
+      if (content != nullptr) {
+        renderText(content, value);
+      }
     }
     else if (strcmp(type, "fillrect") == 0)
     {
@@ -295,7 +315,10 @@ void Clockface::renderElements(JsonArrayConst elements)
     }
     else if (strcmp(type, "image") == 0)
     {
-      renderImage(value["image"].as<const char *>(), value["x"].as<const uint8_t>(), value["y"].as<const uint8_t>());
+      const char *img = value["image"].as<const char *>();
+      if (img != nullptr) {
+        renderImage(img, value["x"].as<const uint8_t>(), value["y"].as<const uint8_t>());
+      }
     }
   }
 }
@@ -349,6 +372,10 @@ bool Clockface::deserializeDefinition()
   }
 
   std::string response_body;
+  if (content_length > 0) {
+    response_body.reserve(content_length);
+  }
+  
   char buffer[512];
   int read_len = 0;
   while ((read_len = esp_http_client_read(client, buffer, sizeof(buffer))) > 0) {
@@ -366,7 +393,9 @@ bool Clockface::deserializeDefinition()
     return false;
   }
 
-  Serial.printf("[Canvas] Building clockface '%s' by %s, version %d\n", doc["name"].as<const char *>(), doc["author"].as<const char *>(), doc["version"].as<const uint16_t>());
+  const char* nm = doc["name"].as<const char *>();
+  const char* au = doc["author"].as<const char *>();
+  Serial.printf("[Canvas] Building clockface '%s' by %s, version %d\n", nm ? nm : "Unknown", au ? au : "Unknown", doc["version"].as<const uint16_t>());
   return true;
 }
 

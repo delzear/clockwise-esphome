@@ -1,18 +1,17 @@
-# Clockwise HUB75 Clock - Canvas Clockface Configuration
-# ESP32-S3 with 64×64 HUB75 LED Panel
-
+# Board: Generic ESP32-S3 Board (Generic)
+# Definition: definitions/boards/generic-esp32s3/manifest.yaml
 substitutions:
-  device_name: clockwise-canvas
-  friendly_name: Clockwise Canvas Clock
+  device_name: clockwise
+  friendly_name: Clockwise
 
   # Panel configuration
   panel_width: "64"
   panel_height: "64"
-  initial_brightness: "128"
+  initial_brightness: "233"
 
   # Canvas Clockface Configuration
-  canvas_server: "raw.githubusercontent.com" # Server hosting Canvas JSON files
-  canvas_file: "pac-man" # Canvas definition (e.g., pac-man, nyan-cat)
+  canvas_server: "192.168.3.11" # Server hosting Canvas JSON files
+  canvas_file: "night" # Canvas definition (e.g., pac-man, nyan-cat)
 
   # LDR Configuration (optional - set enable_ldr: "true" to enable)
   enable_ldr: "false"
@@ -23,39 +22,65 @@ esphome:
   name: ${device_name}
   friendly_name: ${friendly_name}
   comment: "Clockwise Clock with Canvas Clockface Integration"
+  libraries:
+    - "Wire"
+    - "SPI"
+    - "bblanchon/ArduinoJson@^6.21.4"
   build_flags:
     - -Os
     - -DCORE_DEBUG_LEVEL=1
     - -DNO_SIMD
-  platformio_options:
-    lib_ldf_mode: chain+
-
   on_boot:
     - priority: 600
       then:
+        - wait_until:
+            api.connected:
+        - delay: 1s
         - lambda: |-
             id(clockwise_main).set_clockface_type(
-              static_cast<esphome::clockwise_hub75::ClockfaceType>((int)id(saved_clockface)));
+              static_cast<esphome::clockwise_hub75::ClockfaceType>(2));
             id(clockwise_main).set_panel_color_order(
               static_cast<esphome::clockwise_hub75::PanelColorOrder>((int)id(saved_color_order)));
             id(clockwise_main).set_initial_brightness((uint8_t)(int)id(saved_brightness));
             id(clockwise_main).set_ha_time(id(homeassistant_time));
             id(clockwise_main).set_ntp_time(id(ntp_time));
-            id(clockwise_main).set_rtc_time(id(rtc_time));
+            //id(clockwise_main).set_rtc_time(id(rtc_time));
+            id(clockwise_main).set_canvas_file(id(saved_clockface_file));
+        - delay: 1s
+        - switch.turn_on:
+            id: display_power
     - priority: -100
       then:
         - lambda: |-
-            auto ts = id(time_source_selector).current_option;
+            auto ts = id(time_source_selector).current_option();
             int src = (ts == "NTP") ? 1 : (ts == "RTC") ? 2 : 0;
             id(clockwise_main).set_time_source(src);
 
 esp32:
-  board: esp32-s3-devkitc-1
-  variant: esp32s3
+  board: esp32dev
   framework:
     type: arduino
-    version: recommended
 
+logger:
+  level: DEBUG
+
+api:
+  encryption:
+    key: "2H/3t5HZ7pGDs8gm01Y5c8QXI/aE7ahnwrcRpyr7EfY="
+  reboot_timeout: 0s
+ota:
+  - platform: esphome
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  ap:
+    ssid: "${device_name} Fallback"
+    password: "XMYfsaozkGOZ"
+
+captive_portal:
+
+# Clockwise HUB75 Clock - Canvas Clockface Configuration
 globals:
   - id: auto_brightness_enabled
     type: bool
@@ -69,66 +94,46 @@ globals:
     type: int
     restore_value: true
     initial_value: "0" # RGB
-
-logger:
-  level: DEBUG
-
-api:
-  encryption:
-    key: !secret api_encryption_key
-  reboot_timeout: 0s
-
-ota:
-  - platform: esphome
-    password: !secret ota_password
-
-wifi:
-  ssid: !secret wifi_ssid
-  password: !secret wifi_password
-  ap:
-    ssid: "${device_name} Fallback"
-    password: !secret wifi_ap_password
-
-captive_portal:
+  - id: saved_clockface_file
+    type: std::string
+    restore_value: yes
+    initial_value: '"night"'
 
 i2c:
-  sda: 41
-  scl: 42
-  scan: true
-
+  sda: GPIO21
+  scl: GPIO22
+spi:
 time:
   - platform: homeassistant
     id: homeassistant_time
-    timezone: Europe/Vienna
+    timezone: America/Montreal
     on_time_sync:
       then:
         - logger.log: "Time synchronized with Home Assistant"
 
   - platform: sntp
     id: ntp_time
-    timezone: Europe/Vienna
+    timezone: America/Montreal
     servers:
       - 0.pool.ntp.org
       - 1.pool.ntp.org
       - 2.pool.ntp.org
     update_interval: 3600s
 
-  - platform: bm8563
-    id: rtc_time
-    address: 0x51
-    update_interval: 3600s
+  # - platform: bm8563
+  #   id: rtc_time
+  #   address: 0x51
+  #   update_interval: 3600s
 
 external_components:
-  # Use local component or update source to your GitHub fork (e.g. github://<your-username>/clockwise-esphome@main)
-  - source:
-      type: local
-      path: components
+  - source: github://delzear/clockwise-esphome@main
     components: [clockwise_hub75]
+    refresh: always
 
 display:
   - platform: hub75
     id: matrix_display
-    board: huidu-hd-wf2
+    board: esp32-trinity
     panel_width: ${panel_width}
     panel_height: ${panel_height}
     brightness: ${initial_brightness}
@@ -174,7 +179,7 @@ switch:
     name: "Display Power"
     icon: mdi:power
     entity_category: config
-    restore_mode: RESTORE_DEFAULT_ON
+    restore_mode: RESTORE_DEFAULT_OFF
 
 select:
   - platform: template
@@ -183,15 +188,33 @@ select:
     icon: mdi:clock-outline
     entity_category: config
     options:
-      - "Canvas"
-    initial_option: "Canvas"
+      - "alouettes"
+      - "christmas"
+      - "christmassnoopy"
+      - "clock-club"
+      - "formula1"
+      - "goomba_move"
+      - "guillaume"
+      - "habs"
+      - "harry-potter"
+      - "hello-world"
+      - "kcc"
+      - "maxime"
+      - "newyear"
+      - "night"
+      - "pac-man"
+      - "pepsi"
+      - "retro-computer"
+      - "snoopy3"
+      - "star-wars"
+    initial_option: "night"
     restore_value: true
     optimistic: true
     on_value:
       then:
         - lambda: |-
-            id(clockwise_main).switch_clockface(esphome::clockwise_hub75::CANVAS);
-
+            id(clockwise_main).set_canvas_file(x);
+            id(clockwise_main).switch_clockface(esphome::clockwise_hub75::CANVAS, true);
   - platform: template
     id: time_source_selector
     name: "Time Source"
@@ -221,7 +244,7 @@ select:
       - "GBR"
       - "BRG"
       - "BGR"
-    initial_option: "RGB"
+    initial_option: "BGR"
     restore_value: true
     optimistic: true
     on_value:
@@ -249,12 +272,12 @@ button:
     name: "Restart"
     entity_category: diagnostic
 
-  - platform: template
-    name: "Sync Time to RTC"
-    icon: mdi:clock-check
-    entity_category: config
-    on_press:
-      then:
-        - logger.log: "Syncing time to RTC..."
-        - bm8563.write_time:
-            id: rtc_time
+  # - platform: template
+  #   name: "Sync Time to RTC"
+  #   icon: mdi:clock-check
+  #   entity_category: config
+  #   on_press:
+  #     then:
+  #       - logger.log: "Syncing time to RTC..."
+  #       - bm8563.write_time:
+  #           id: rtc_time
