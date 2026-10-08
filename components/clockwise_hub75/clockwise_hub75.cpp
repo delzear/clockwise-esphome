@@ -33,6 +33,8 @@ void ClockwiseHUB75::set_time_source(int source) {
     ESP_LOGD(TAG, "g_dt.set_rtc: time_=%p", time_);
     g_dt.set_rtc(time_);
   }
+  ESP_LOGD(TAG, "Set time source done!");
+
 }
 
 static IClockface *create_clockface_(ClockfaceType type, GFXWrapper *gfx, const std::string &server, const std::string &file) {
