@@ -38,6 +38,7 @@ void ClockwiseHUB75::set_time_source(int source) {
 }
 
 static IClockface *create_clockface_(ClockfaceType type, GFXWrapper *gfx, const std::string &server, const std::string &file) {
+  ESP_LOGI(TAG, "Creating clockface");
   return new canvas::Clockface(gfx, server, file);
 }
 
