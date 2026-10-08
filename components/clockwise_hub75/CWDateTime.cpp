@@ -89,10 +89,10 @@ std::string CWDateTime::format_ez_time(const esphome::ESPTime &tm, const std::st
 }
 
 String CWDateTime::getFormattedTime() {
-  if (!rtc_) return "00:00:00";
+  if (!rtc_) return "";
 
   esphome::ESPTime t = rtc_->now();
-  if (!t.is_valid()) return "00:00:00";
+  if (!t.is_valid()) return "";
 
   char buf[16];
   snprintf(buf, sizeof(buf), "%02d:%02d:%02d", t.hour, t.minute, t.second);
@@ -100,7 +100,7 @@ String CWDateTime::getFormattedTime() {
 }
 
 String CWDateTime::getFormattedTime(const char *format) {
-  if (!rtc_) return "00:00:00";
+  if (!rtc_) return "";
   
   return String(format_ez_time(rtc_->now(), format).c_str());
 }
