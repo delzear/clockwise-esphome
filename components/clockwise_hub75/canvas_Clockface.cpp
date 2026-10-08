@@ -9,6 +9,8 @@ Clockface::Clockface(Adafruit_GFX *display, std::string server, std::string file
     : _display(display), _server(server), _file(file)
 {
   Locator::provide(display);
+    ESP_LOGI(TAG, "Creating clockface");
+
 }
 
 void Clockface::setup(CWDateTime *dateTime)

@@ -16,7 +16,6 @@ static const char *const TAG = "clockwise_hub75";
 void ClockwiseHUB75::set_time_source(int source) {
   // 0 = Home Assistant, 1 = NTP (SNTP), 2 = RTC
   time_source_ = source;
-  //ESP_LOGD(TAG, "set_time_source: source=%d ha=%p ntp=%p rtc=%p", source, ha_time_, ntp_time_, rtc_time_);
 
   if (source == 0 && ha_time_ != nullptr) {
     ESP_LOGI(TAG, "Switching to Home Assistant time");
@@ -38,7 +37,6 @@ void ClockwiseHUB75::set_time_source(int source) {
 }
 
 static IClockface *create_clockface_(ClockfaceType type, GFXWrapper *gfx, const std::string &server, const std::string &file) {
-  ESP_LOGI(TAG, "Creating clockface");
   return new canvas::Clockface(gfx, server, file);
 }
 
