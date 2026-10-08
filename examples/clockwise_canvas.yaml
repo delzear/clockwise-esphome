@@ -44,7 +44,7 @@ esphome:
             id(clockwise_main).set_initial_brightness((uint8_t)(int)id(saved_brightness));
             id(clockwise_main).set_ha_time(id(homeassistant_time));
             id(clockwise_main).set_ntp_time(id(ntp_time));
-            //id(clockwise_main).set_rtc_time(id(rtc_time));
+            id(clockwise_main).set_rtc_time(id(rtc_time));
             id(clockwise_main).set_canvas_file(id(saved_clockface_file));
         - delay: 1s
         - switch.turn_on:
@@ -120,10 +120,10 @@ time:
       - 2.pool.ntp.org
     update_interval: 3600s
 
-  # - platform: bm8563
-  #   id: rtc_time
-  #   address: 0x51
-  #   update_interval: 3600s
+  - platform: bm8563
+    id: rtc_time
+    address: 0x51
+    update_interval: 3600s
 
 external_components:
   - source: github://delzear/clockwise-esphome@main
@@ -272,12 +272,12 @@ button:
     name: "Restart"
     entity_category: diagnostic
 
-  # - platform: template
-  #   name: "Sync Time to RTC"
-  #   icon: mdi:clock-check
-  #   entity_category: config
-  #   on_press:
-  #     then:
-  #       - logger.log: "Syncing time to RTC..."
-  #       - bm8563.write_time:
-  #           id: rtc_time
+  - platform: template
+    name: "Sync Time to RTC"
+    icon: mdi:clock-check
+    entity_category: config
+    on_press:
+      then:
+        - logger.log: "Syncing time to RTC..."
+        - bm8563.write_time:
+            id: rtc_time

@@ -16,10 +16,13 @@ Clockface::Clockface(Adafruit_GFX *display, std::string server, std::string file
 void Clockface::setup(CWDateTime *dateTime)
 {
   this->_dateTime = dateTime;
-  drawSplashScreen(0xFFE0, "Downloading");
+  drawSplashScreen(0xFFE0, "Downloading...");
   
   if (deserializeDefinition()) {
     clockfaceSetup();
+    _is_setup = true;
+  } else {
+    _is_setup = false;
   }
 }
 
@@ -42,6 +45,18 @@ void Clockface::drawSplashScreen(uint16_t color, const char *msg) {
 
 void Clockface::update()
 {
+  if (!_is_setup) {
+    if (millis() - lastMillis >= 5000) {
+      drawSplashScreen(0xFFE0, "Retrying...");
+      if (deserializeDefinition()) {
+        clockfaceSetup();
+        _is_setup = true;
+      }
+      lastMillis = millis();
+    }
+    return;
+  }
+
   // Render animation
   clockfaceLoop();
 
@@ -354,7 +369,7 @@ bool Clockface::deserializeDefinition()
     ESP_LOGCONFIG("Clockface", "Error code: %d", err);
 
     esp_http_client_cleanup(client);
-    drawSplashScreen(0xC904, "Connect failed");
+    drawSplashScreen(0xC904, "Waiting for Net");
     return false;
   }
 

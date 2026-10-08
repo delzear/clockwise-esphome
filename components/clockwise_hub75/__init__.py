@@ -4,6 +4,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.const import CONF_ID
+from esphome.components import time as time_
 
 import os
 
@@ -29,6 +30,10 @@ CONF_PANEL_COLOR_ORDER = "panel_color_order"
 CONF_CANVAS_SERVER = "canvas_server"
 CONF_CANVAS_FILE = "canvas_file"
 
+CONF_HA_TIME_ID = "ha_time_id"
+CONF_NTP_TIME_ID = "ntp_time_id"
+CONF_RTC_TIME_ID = "rtc_time_id"
+
 CLOCKFACE_TYPES = {
     "CANVAS": ClockfaceType.CANVAS,
     "CLOCK": ClockfaceType.CLOCK,
@@ -53,6 +58,9 @@ CONFIG_SCHEMA = cv.Schema({
     cv.Optional(CONF_INITIAL_BRIGHTNESS, default=128): cv.int_range(min=0, max=255),
     cv.Optional(CONF_CANVAS_SERVER, default="raw.githubusercontent.com"): cv.string,
     cv.Optional(CONF_CANVAS_FILE, default="pac-man"): cv.string,
+    cv.Optional(CONF_HA_TIME_ID): cv.use_id(time_.RealTimeClock),
+    cv.Optional(CONF_NTP_TIME_ID): cv.use_id(time_.RealTimeClock),
+    cv.Optional(CONF_RTC_TIME_ID): cv.use_id(time_.RealTimeClock),
 }).extend(cv.polling_component_schema("16ms"))
 
 
@@ -76,3 +84,15 @@ async def to_code(config):
     cg.add(var.set_initial_brightness(config[CONF_INITIAL_BRIGHTNESS]))
     cg.add(var.set_canvas_server(config[CONF_CANVAS_SERVER]))
     cg.add(var.set_canvas_file(config[CONF_CANVAS_FILE]))
+
+    if CONF_HA_TIME_ID in config:
+        ha_time_var = await cg.get_variable(config[CONF_HA_TIME_ID])
+        cg.add(var.set_ha_time(ha_time_var))
+    
+    if CONF_NTP_TIME_ID in config:
+        ntp_time_var = await cg.get_variable(config[CONF_NTP_TIME_ID])
+        cg.add(var.set_ntp_time(ntp_time_var))
+
+    if CONF_RTC_TIME_ID in config:
+        rtc_time_var = await cg.get_variable(config[CONF_RTC_TIME_ID])
+        cg.add(var.set_rtc_time(rtc_time_var))
